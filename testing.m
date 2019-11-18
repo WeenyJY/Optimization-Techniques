@@ -28,21 +28,28 @@ gaussiansNum = 15;
 % Initialize Population of Chromosomes
 % population(gaussian_i,parameter_j,chromosome_k)
 population = initPopulation(gaussiansNum,chromeNum);
-fitnessPop = fitnessEvaulation(population)
+fitnessPop = fitnessEvaluation(population);
 
 %% Genetic Algorithm
 
 % Termination Criterion
 terminate = false;
 
+% Count number of generations
+generations = 1;
+
 % Main Loop
 while terminate == false
     
-    selectionProccess()
-    crossoverProccess()
-    mutationProccess()
-    fitnessEvaluation()
+    population = selectionProcess(population,fitnessPop);
     
+    crossoverProcess()
+    
+    mutationProcess()
+    
+    fitnessEvaluation(population);
+    
+    generations = generations + 1;
 end
 
 %% Initialize Population
@@ -62,29 +69,63 @@ end
 %% Fittness Evaulation
 
 % terminate the Genetic Algorithm after a specific event
-function fitChrome = fitnessEvaulation(population)
+function fitChrome = fitnessEvaluation(population)
 
-% Set of Data to be used
+% Dataset to be used
 U = -2:0.1:2;
 
 fitChrome = zeros(size(population,3),1);
+
+% For every input set of inputs (u1,u2) in the Dataset calculate fitness of the chromosome i
 for i = 1:size(population,3)
+    
     for u1 = U
         for u2 = U
             fitChrome(i) = fitChrome(i) + fitnessCalc([u1;u2],population(:,:,i));
         end
     end
+    
 end
 
-fitChrome = fitChrome./length(U)^2;
 
 end
 
 %% Selection Proccess
+% Roulette Wheel Selection
+function newPopulation = selectionProcess(population,fitnessPop)
 
-function selectionProcess()
+newPopulation = zeros(size(population));
 
+counter = 1;
 
+% Choose Chromosomes to survive
+while counter <= size(newPopulation,3)
+    
+    % Split probabilities into segments
+    % Ex: Segment 1 : [0,prob(1)]
+    %     Segment 2 : [prob(1),prob(2)] etc.
+    prob = length(fitnessPop);
+    for i = 1:length(fitnessPop)
+        prob(i) = sum(fitnessPop(1:i))/sum(fitnessPop);
+    end
+    
+    % Generate a random number
+    randNum = rand(1);
+        
+    % Choose which chromosome survives depending
+    % on which segment includes the random number
+    for index = 1 : length(fitnessPop)
+        if(prob(index)>=randNum)
+            break;
+        end
+    end
+    
+    % Pass the "lucky" chromosome to the next generation
+    newPopulation(:,:,counter) = population(:,:,index);
+    
+    counter = counter + 1;
+    
+end
 
 end
 
