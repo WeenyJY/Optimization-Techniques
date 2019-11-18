@@ -1,3 +1,10 @@
+% Konstantinos Letros 8851
+% Optimization Techniques
+% Project 2 - Gradient Descent Methods
+% Steepest Descent - Newton's Method
+
+%% Clean the screen
+
 clc
 clear
 close all;

@@ -1,3 +1,11 @@
+% Konstantinos Letros 8851
+% Optimization Techniques
+% Project 3 - Other Gradient Descent Methods
+% Levenberg Marquardt - Conjugate Gradients - Quasi Newton
+
+
+%% Clean the screen
+
 clc
 clear
 close all;

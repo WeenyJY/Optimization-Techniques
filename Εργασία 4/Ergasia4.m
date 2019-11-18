@@ -1,3 +1,11 @@
+% Konstantinos Letros 8851
+% Optimization Techniques
+% Project 4 - Compariston to Constrained Gradient Descent Method
+% Steepest Descent - Steepest Descent with Projection
+
+
+%% Clean the screen
+
 clc
 clear
 close all;
