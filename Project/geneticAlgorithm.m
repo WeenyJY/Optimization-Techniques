@@ -38,13 +38,13 @@ pause(0.01);
 %% Initialization
 
 % Number of Chromosomes in every Population
-chromeNum = 12;
+chromeNum = 200;
 
 % Number of Gaussians in every Chromosome
 gaussiansNum = 15;
 
 % Number of generations until termination
-generationsNum = 100;
+generationsNum = 500;
 
 % Initialize Population of Chromosomes
 % population(gaussian_i,parameter_j,chromosome_k)
@@ -70,10 +70,10 @@ while generations <= generationsNum
     population = selectionProcess(population,fitnessPop);
     
     % Crossover - Initial Crossover Parameter = 50%
-    population = crossoverProcess(population,decayFun(0.50,generations));
+    population = crossoverProcess(population,0.50);%decayFun(0.50,generations));
     
     % Mutation - Initial Mutation Parameter = 30%
-    population = mutationProcess(population,decayFun(0.30,generations));
+    population = mutationProcess(population,0.30);%decayFun(0.30,generations));
     
     % Fitness Evaluation
     fitnessPop = fitnessEvaluation(population,f);
@@ -91,15 +91,28 @@ while generations <= generationsNum
     
 end
 
-%% Results
+%% Results - Evaluation
+
 
 % Best chromosome of the final population
 [~,bestIdx] = max(fitnessPop);
 optimalChromesome = population(:,:,bestIdx);
 fprintf("\nFitness of the best chromosome: %f \n", fitnessPop(bestIdx) )
 
-% Plot Function Estimation
 f_hat = @(u) ObjectiveFuncEstim(u,optimalChromesome);
+
+% Mean Square Error
+MSE = 0;
+U_test = -2:0.015:2;
+
+for u1 = U_test
+    for u2 = U_test
+        MSE = MSE + (f_hat([u1,u2])- f([u1,u2])).^2/length(U_test)^2;
+    end
+end
+fprintf("\nMean Square Error: %f \n",MSE)
+
+% Plot Function Estimation
 plotNum = plotFunction(plotNum,f_hat);
 
 figure(plotNum-1)
@@ -161,6 +174,8 @@ for i = 1:size(population,3)
     
 end
 
+fitChrome = fitChrome/length(U)^2;
+
 end
 
 %% Selection Proccess
@@ -168,12 +183,6 @@ end
 function newPopulation = selectionProcess(population,fitnessPop)
 
 newPopulation = zeros(size(population));
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [~,IdxVec] = sort(fitnessPop,'descend');
-% fitnessPop(IdxVec(1)) = fitnessPop(IdxVec(1))*4;
-% fitnessPop(IdxVec(2)) = fitnessPop(IdxVec(2))*2;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 counter = 1;
 
@@ -194,7 +203,7 @@ while counter <= size(newPopulation,3)
     % Choose which chromosome survives depending
     % on which segment includes the random number
     for index = 1 : length(fitnessPop)
-        if(prob(index)>=randNum)
+        if prob(index)>=randNum
             break;
         end
     end
@@ -253,7 +262,7 @@ mutChance = 2*mutParam*rand;
 while counter <= round(size(newPopulation,3)*mutChance)
     
     newPopulation(:,:,randi([1,size(population,3)])) = ...
-        rand(size(population,1),size(population,2),1)*10-5;
+        randn(size(population,1),size(population,2),1)*10-5;
     
     counter = counter + 1;
 end
