@@ -38,13 +38,13 @@ pause(0.01);
 %% Initialization
 
 % Number of Chromosomes in every Population
-chromeNum = 200;
+chromeNum = 50;
 
 % Number of Gaussians in every Chromosome
 gaussiansNum = 15;
 
 % Number of generations until termination
-generationsNum = 500;
+generationsNum = 100;
 
 % Initialize Population of Chromosomes
 % population(gaussian_i,parameter_j,chromosome_k)
@@ -243,8 +243,13 @@ while counter <= size(offspring,3)
     
 end
 
+% Join offsprings with part of the elder population
 newPopulation = population;
 newPopulation(:,:,1:size(offspring,3)) = offspring;
+
+% shuffle the population
+idx = randperm(size(newPopulation,3));
+newPopulation = newPopulation(:,:,idx);
 
 end
 
@@ -261,9 +266,14 @@ mutChance = 2*mutParam*rand;
 
 while counter <= round(size(newPopulation,3)*mutChance)
     
-    newPopulation(:,:,randi([1,size(population,3)])) = ...
-        randn(size(population,1),size(population,2),1)*10-5;
-    
+    % Chromosome Mutation
+%     newPopulation(:,:,randi([1,size(population,3)])) = ...
+%         randn(size(population,1),size(population,2),1)*8-4;
+
+    % Gene Mutation of a random Chromosome
+    newPopulation(:,randi([1,size(population,2)]),randi([1,size(population,3)])) = ...
+        randn(size(population,1),1,1)*8-4;
+
     counter = counter + 1;
 end
 
