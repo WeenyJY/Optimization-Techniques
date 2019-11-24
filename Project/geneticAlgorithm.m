@@ -55,7 +55,7 @@ fitnessPop = fitnessEvaluation(population,f);
 fittest = zeros(generationsNum,1);
 fittest(1) = max(fitnessPop);
 fprintf("Generation 1 \nCurrent Fittest Evaluation: %f \n",fittest(1))
-
+        
 % Crossover decay through generations
 decayFun = @(mag,gen) mag*exp(2*(1-gen)/generationsNum);
 
@@ -65,22 +65,27 @@ decayFun = @(mag,gen) mag*exp(2*(1-gen)/generationsNum);
 generations = 1;
 
 while generations <= generationsNum
+
+    % Keep the previous population
+    prevPopulation = population;
     
     % Selection
     population = selectionProcess(population,fitnessPop);
     
-    % Crossover - Initial Crossover Parameter = 50%
-    population = crossoverProcess(population,0.50);%decayFun(0.50,generations));
+    % Crossover - Crossover Parameter = 80%
+    population = crossoverProcess(population,0.80);%decayFun(0.80,generations));
     
-    % Mutation - Initial Mutation Parameter = 30%
-    population = mutationProcess(population,0.30);%decayFun(0.30,generations));
+    % Mutation - Mutation Parameter = 20%
+    population = mutationProcess(population,0.20);%decayFun(0.01,generations));
+    
+    % Elitism - Rate of Chromosomes to be passed directly = 5%
+    population = elitismProcess(population,prevPopulation,fitnessPop,0.05);
     
     % Fitness Evaluation
     fitnessPop = fitnessEvaluation(population,f);
     
-    % Fittest Chromosome's Evaluation
+    % Print Progress Message
     fittest(generations) = max(fitnessPop);
-    
     if mod(generations,generationsNum/10) == 0
         fprintf("Generation %d \nCurrent Fittest Evaluation: %f \n",...
             generations,fittest(generations))
@@ -93,13 +98,12 @@ end
 
 %% Results - Evaluation
 
-
 % Best chromosome of the final population
 [~,bestIdx] = max(fitnessPop);
-optimalChromesome = population(:,:,bestIdx);
+optimalChromosome = population(:,:,bestIdx);
 fprintf("\nFitness of the best chromosome: %f \n", fitnessPop(bestIdx) )
 
-f_hat = @(u) ObjectiveFuncEstim(u,optimalChromesome);
+f_hat = @(u) ObjectiveFuncEstim(u,optimalChromosome);
 
 % Mean Square Error
 MSE = 0;
@@ -121,7 +125,7 @@ xlabel('$$ u_1 $$','Interpreter','Latex')
 ylabel('$$ u_2 $$','Interpreter','Latex')
 
 figure(plotNum)
-title('3D Plot - Estimated $$ \hat{f}(u_1,u_2)  $$','Interpreter','Latex')
+title('2D Plot - Estimated $$ \hat{f}(u_1,u_2)  $$','Interpreter','Latex')
 xlabel('$$ u_1 $$','Interpreter','Latex')
 ylabel('$$ u_2 $$','Interpreter','Latex')
 
@@ -135,7 +139,7 @@ xlabel('Generations')
 ylabel('Fitness Evaluation')
 
 toc
-
+save data.mat
 %% Functions
 
 %% Initialize Population
@@ -221,63 +225,80 @@ end
 function newPopulation = crossoverProcess(population,crossParam)
 
 
-offspring = zeros(size(population,1),size(population,2),ceil(size(population,3)*crossParam));
+offspring = population;
 
 counter = 1;
 
 while counter <= size(offspring,3)
     
-    % Choose 2 parent-chromosomes randomly
-    parents = population(:,:,randi([1,size(population,3)],2,1));
+    prob = rand;
     
-    % Choose position of gene (gaussian) exchange randomly
-    crossPos = randi([1,size(population,1)-1]);
-    
-    % ie. parent1   = [gene11; gene12; gene13]
-    %     parent2   = [gene21; gene22; gene23]
-    %     crossPos  = 2
-    %     offspring = [gene11; gene12; gene23]
-    offspring(:,:,counter) = [parents(1:crossPos,:,1);parents(crossPos+1:end,:,2)];
+    if prob < crossParam
+        
+        % Choose 2 parent-chromosomes randomly
+        parents = population(:,:,randi([1,size(population,3)],2,1));
+        
+        % Choose position of gene (gaussian) exchange randomly
+        crossPos = randi([1,size(population,1)-1]);
+        
+        % ie. parent1   = [gene11; gene12; gene13]
+        %     parent2   = [gene21; gene22; gene23]
+        %     crossPos  = 2
+        %     offspring = [gene11; gene12; gene23]
+        offspring(:,:,counter) = [parents(1:crossPos,:,1);parents(crossPos+1:end,:,2)];
+        
+    end
     
     counter = counter + 1;
     
 end
 
-% Join offsprings with part of the elder population
-newPopulation = population;
-newPopulation(:,:,1:size(offspring,3)) = offspring;
-
-% shuffle the population
-idx = randperm(size(newPopulation,3));
-newPopulation = newPopulation(:,:,idx);
+% Shuffle the population
+idx = randperm(size(population,3));
+newPopulation = offspring(:,:,idx);
 
 end
 
 
-%% Mutation Proccess
+%% Mutation Process
 function newPopulation = mutationProcess(population,mutParam)
 
 newPopulation = population;
 
 counter = 1;
 
-% Random number of mutations take place
-mutChance = 2*mutParam*rand;
-
-while counter <= round(size(newPopulation,3)*mutChance)
+while counter <= size(population,3)
     
-    % Chromosome Mutation
-%     newPopulation(:,:,randi([1,size(population,3)])) = ...
-%         randn(size(population,1),size(population,2),1)*8-4;
-
-    % Gene Mutation of a random Chromosome
-    newPopulation(:,randi([1,size(population,2)]),randi([1,size(population,3)])) = ...
-        randn(size(population,1),1,1)*8-4;
-
+    prob = rand;
+    
+    if prob < mutParam
+                
+        % Random Gene's Position
+        randGenePos = randi([1,size(population,2)]);
+        
+        % New Random Gene ~ Normal Distribution
+        newGene = randn(size(population,2),1)*2;
+        
+        % Random Gene Mutation
+        newPopulation(randGenePos,:,counter) = newGene';
+    end
+    
     counter = counter + 1;
+    
 end
 
 
+end
+
+%% Elitism Process
+function newPopulation = elitismProcess(population,prevPopulation,fitnessPop,elitParam)
+    
+    newPopulation = population;
+    [~,Idx] = sort(fitnessPop,'descend');
+    for i = 1 : ceil(elitParam*size(population,3))
+       newPopulation(:,:,Idx(end+1-i))= prevPopulation(:,:,Idx(i)); 
+    end
+    
 end
 
 %% Other Functions
