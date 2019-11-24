@@ -182,7 +182,7 @@ fitChrome = fitChrome/length(U)^2;
 
 end
 
-%% Selection Proccess
+%% Selection Process
 % Roulette Wheel Selection
 function newPopulation = selectionProcess(population,fitnessPop)
 
@@ -221,7 +221,7 @@ end
 
 end
 
-%% Crossover Proccess
+%% Crossover Process
 function newPopulation = crossoverProcess(population,crossParam)
 
 
@@ -229,7 +229,7 @@ offspring = population;
 
 counter = 1;
 
-while counter <= size(offspring,3)
+while counter <= size(population,3)
     
     prob = rand;
     
