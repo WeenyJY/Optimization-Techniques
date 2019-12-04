@@ -1,7 +1,7 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% Project 2 - Gradient Descent Methods
-% Steepest Descent - Newton's Method
+% Project 2 - Gradient Descent Methods - Part 1
+% Steepest Descent , Newton , Levenberg-Marquardt
 
 %% Clean the screen
 
@@ -11,14 +11,13 @@ close all;
 format long;
 
 %% Parameters
-
 e = 1e-4;
 plotNum = 0;
-gammaStrings = ["Constant Gamma","Optimized Gamma","Changing Gamma"];
+gammaStrings = ["Constant Gamma","Optimized Gamma","Armijo's Gamma"];
 
 % Inital Conditions
-x_1 = [-0.5,0.5,-2,-3, -0.1];
-y_1 = [-0.5,0.5,-1, 3, -0.9];
+x_1 = [0,-1,1];
+y_1 = [0,-1,1];
 
 %% Steepest Descent
 fprintf("####### STEEPEST DESCENT #######\n\n")
@@ -28,7 +27,7 @@ for gammaMethod = 1 : 3
     
     % Count Number of Plots
     plotNum = plotFunction(plotNum);
-    fprintf("******* Gamma Method %d *******\n\n",gammaMethod)
+    fprintf("******* %s *******\n\n",gammaStrings(gammaMethod))
     
     % For all Initial Conditions
     for i=1:length(x_1)
@@ -40,7 +39,7 @@ for gammaMethod = 1 : 3
         elseif gammaMethod == 2
             fprintf("Gamma is optimized using Golden Section Method \n")
         else
-            fprintf("Gamma is decaying through Iterations \n")
+            fprintf("Gamma is optimized using Armijo's Condition \n")
         end
         
         % Steepest Descent
@@ -87,7 +86,7 @@ for gammaMethod = 1 : 3
         elseif gammaMethod == 2
             fprintf("Gamma is optimized using Golden Section Method \n")
         else
-            fprintf("Gamma is decaying through Iterations \n")
+            fprintf("Gamma is optimized using Armijo's Condition \n")
         end
         
         % Steepest Descent
@@ -113,6 +112,55 @@ for gammaMethod = 1 : 3
     ylabel("y")
     zlabel("f(x,y)")
 end
+
+%% Levenberg-Marquardt Method
+fprintf("\n\n####### LEVENBERG MARQUARDT METHOD #######\n\n")
+
+% 3 Different Methods of Calculating Gamma
+for gammaMethod = 1 : 3
+    
+    % Count Number of Plots
+    plotNum = plotFunction(plotNum);
+    fprintf("******* Gamma Method %d *******\n\n",gammaMethod)
+    
+    % For all Initial Conditions
+    for i=1:length(x_1)
+        
+        fprintf("Initial Conditions [x,y] =  [%f,%f]\n",x_1(i),y_1(i));
+        
+        if gammaMethod == 1
+            fprintf("Gamma is constant \n")
+        elseif gammaMethod == 2
+            fprintf("Gamma is optimized using Golden Section Method \n")
+        else
+            fprintf("Gamma is optimized using Armijo's Condition \n")
+        end
+        
+        % Steepest Descent
+        [x,y,k] = levenbergMarquardt(x_1(i),y_1(i),e,gammaMethod);
+        
+        fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
+            f(x(end),y(end)),x(end),y(end),k);
+        
+        % Plot Trace
+        tracePlot (x,y,k,plotNum-1)
+        tracePlot (x,y,k,plotNum)
+    end
+    
+    figure(plotNum-1)
+    title(['3D Plot - Levenberg-Marquardt Method - ',num2str(gammaStrings(gammaMethod))])
+    xlabel("x")
+    ylabel("y")
+    zlabel("f(x,y)")
+    
+    figure(plotNum)
+    title(['2D Plot - Levenberg-Marquardt Method - ',num2str(gammaStrings(gammaMethod))])
+    xlabel("x")
+    ylabel("y")
+    zlabel("f(x,y)")
+end
+
+
 
 %% Save Plots
 
@@ -166,11 +214,15 @@ gamma = [];
 while( norm( gradf(x(k),y(k)) ) >= e)
     
     d(:,k) = - gradf(x(k),y(k));
-    gamma(k) = calcGamma(x(k),y(k),d(:,k),k,gammaMethod);
+    gamma(k) = calcGamma(x(k),y(k),d(:,k),gammaMethod);
     x(k+1) = x(k) + gamma(k)*d(1,k);
     y(k+1) = y(k) + gamma(k)*d(2,k);
     
     k = k + 1;
+    if k>50000
+        fprintf("Algorithm did not converge\n")
+        break
+    end
 end
 
 end
@@ -184,16 +236,60 @@ gamma = [];
 while( norm( gradf(x(k),y(k)) ) >= e)
     
     d(:,k) = - inv(hessianf(x(k),y(k)))*gradf(x(k),y(k));
-    gamma(k) = calcGamma(x(k),y(k),d(:,k),k,method);
+    gamma(k) = calcGamma(x(k),y(k),d(:,k),method);
     x(k+1) = x(k) + gamma(k)*d(1,k);
     y(k+1) = y(k) + gamma(k)*d(2,k);
     
     k = k + 1;
+    if k>50000
+        fprintf("Algorithm did not converge\n")
+        break
+    end
 end
 
 end
 
-function gamma = calcGamma(x_k, y_k, d_k ,k , gammaMethod)
+function [x,y,k] = levenbergMarquardt(x,y,e,method)
+k = 1;
+d = [];
+gamma = [];
+
+
+while( norm( gradf(x(k),y(k)) ) >= e)
+    
+    d(:,k) = calcVecdlevMarq(x(k),y(k));
+    gamma(k) = calcGamma(x(k),y(k),d(:,k),method);
+    x(k+1) = x(k) + gamma(k)*d(1,k);
+    y(k+1) = y(k) + gamma(k)*d(2,k);
+    
+    k = k + 1;
+    if k>50000
+        fprintf("Algorithm did not converge\n")
+        break
+    end
+end
+
+end
+
+function d_k = calcVecdlevMarq(x_k,y_k)
+
+mu = abs(max(eig(hessianf(x_k,y_k))))+1;
+step = 0.1;
+
+g = @ (mu) hessianf(x_k,y_k)+mu*eye(2) ;
+[~,isPositive] = chol(g(mu));
+
+% Change mu until g is Positive Definite
+while isPositive==1
+    mu = mu + step ;
+    [~,isPositive] = chol(g(mu));
+end
+
+% Solve linear system
+d_k = g(mu)\(-gradf(x_k,y_k));
+end
+
+function gamma = calcGamma(x_k, y_k, d_k , gammaMethod)
 
 if gammaMethod == 1
     gamma = 0.5;
@@ -212,14 +308,19 @@ elseif gammaMethod == 2
     
 else
     
-    % Inital learning Rate
-    gamma0 = 0.9;
+    % Armijo's Condition
     
-    % Decay Parameter
-    a = 0.04;
+    s = 0.9;
+    beta = 0.2;
+    alpha = 0.05;
     
-    % Time-Based Decay
-    gamma = gamma0*exp(-a*k);
+    m_k = 0;
+    gamma = s*beta^m_k;
+    
+    while f(x_k,y_k)-f(x_k+gamma*d_k(1) , y_k+gamma*d_k(2) ) < -alpha*gamma*d_k'*gradf(x_k,y_k)
+        m_k = m_k + 1;
+        gamma = s*beta^m_k;
+    end
     
 end
 

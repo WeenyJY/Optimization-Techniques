@@ -1,7 +1,7 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% Project 3 - Other Gradient Descent Methods
-% Levenberg Marquardt - Conjugate Gradients - Quasi Newton
+% Project 2 - Gradient Descent Methods - Part 2
+% Conjugate Gradients - Quasi Newton
 
 
 %% Clean the screen
@@ -15,30 +15,28 @@ format long;
 
 e = 1e-4;
 plotNum = 0;
-gammaStrings = ["Constant Gamma","Optimized Gamma","Changing Gamma"];
-dVecStrings = ["Levenberg Marquardt Method","Conjugate Gradient Method","Quasi Newton Method"];
+gammaStrings = ["Constant Gamma","Optimized Gamma","Armijo's Gamma"];
+dVecStrings = ["Conjugate Gradient Method","Quasi Newton Method"];
 
 % Inital Conditions
-x_1 = [-0.5,0.5,-2,-3];
-y_1 = [-0.5,0.5,-1, 3];
-x_1 = [-2];
-y_1 = [-1];
+x_1 = [0,-0.6,1];
+y_1 = [0,-0.6,1];
 
 %% Gradient Descent
 fprintf("####### GRADIENT DESCENT #######\n\n")
 
 
-% 3 Different Methods of Calculating d_k Vector
-for dVecMethod = 1 : 1
+% 2 Different Methods of Calculating d_k Vector
+for dVecMethod = 1 : 2
     
-    fprintf("******* d_k Vector Calculation Method %d *******\n\n",dVecMethod)
+    fprintf("******* %s *******\n\n",dVecStrings(dVecMethod))
     
 % 3 Different Methods of Calculating Gamma
 for gammaMethod = 1 : 3
     
     % Count Number of Plots
     plotNum = plotFunction(plotNum);
-    fprintf("******* Gamma Method %d *******\n\n",gammaMethod)
+    fprintf("******* %s *******\n\n",gammaStrings(gammaMethod))
     
     % For all Initial Conditions
     for i=1:length(x_1)
@@ -50,14 +48,14 @@ for gammaMethod = 1 : 3
         elseif gammaMethod == 2
             fprintf("Gamma is optimized using Golden Section Method \n")
         else
-            fprintf("Gamma is decaying through Iterations \n")
+            fprintf("Gamma is optimized using Armijo's Condition \n")
         end
         
         % Gradient Descent
         [x,y,k] = gradientDescent(x_1(i),y_1(i),e,gammaMethod,dVecMethod);
         
-        fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
-            f(x(end),y(end)),x(end),y(end),k);
+        fprintf("Min(g) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
+            g(x(end),y(end)),x(end),y(end),k);
         
         % Plot Trace
         tracePlot (x,y,k,plotNum-1)
@@ -65,16 +63,16 @@ for gammaMethod = 1 : 3
     end
     
     figure(plotNum-1)
-    title(['3D Plot - Gradient Descent Method - ',num2str(gammaStrings(gammaMethod)),' - ',num2str(dVecStrings(dVecMethod))])
+    title(['3D Plot - ',num2str(gammaStrings(gammaMethod)),' - ',num2str(dVecStrings(dVecMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    zlabel("g(x,y)")
     
     figure(plotNum)
-    title(['2D Plot - Gradient Descent Method - ',num2str(gammaStrings(gammaMethod)),' - ',num2str(dVecStrings(dVecMethod))])
+    title(['2D Plot - ',num2str(gammaStrings(gammaMethod)),' - ',num2str(dVecStrings(dVecMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    zlabel("g(x,y)")
 end
 end
 
@@ -102,7 +100,7 @@ y = linspace(-3.5, 3.5, 100);
 func = [];
 for i = 1:length(x)
     for j = 1:length(y)
-        func(i,j) = f(X(i,j),Y(i,j));
+        func(i,j) = g(X(i,j),Y(i,j));
     end
 end
 
@@ -125,26 +123,24 @@ d = [];
 gamma = [];
 
 
-while( norm( gradf(x(k),y(k)) ) >= e)
+while( norm( gradg(x(k),y(k)) ) >= e)
     
     if dVectorMethod == 1
-        d(:,k) = levenbergMarquardt(x(k),y(k));
-    elseif dVectorMethod == 2
         if k ~= 1 
             d(:,k) = conjGradients(x(k),y(k),x(k-1),y(k-1),d(:,k-1));
         else
-            d(:,1) = - gradf(x(k),y(k));
+            d(:,1) = - gradg(x(k),y(k));
         end
     else
         if k ~= 1
             [d(:,k),Delta_k] = quasiNewton(x(k),y(k),x(k-1),y(k-1),Delta_k);
         else
             Delta_k = 4*eye(2);
-            d(:,1) = -Delta_k*gradf(x(k),y(k));
+            d(:,1) = -Delta_k*gradg(x(k),y(k));
         end
     end
     
-    gamma(k) = calcGamma(x(k),y(k),d(:,k),k,gammaMethod);
+    gamma(k) = calcGamma(x(k),y(k),d(:,k),gammaMethod);
     x(k+1) = x(k) + gamma(k)*d(1,k);
     y(k+1) = y(k) + gamma(k)*d(2,k);
     
@@ -153,28 +149,10 @@ end
 
 end
 
-function d_k = levenbergMarquardt(x_k,y_k)
-
-    mu = abs(max(eig(hessianf(x_k,y_k))));
-    step = 0.1;
-    
-    g = @ (mu) hessianf(x_k,y_k)+mu*eye(2) ;
-    [~,isPositive] = chol(g(mu));
-    
-    % Change mu until g is Positive Definite
-    while isPositive==1
-        mu = mu + step ;
-        [~,isPositive] = chol(g(mu));
-    end
-    
-    % Solve linear system
-    d_k = g(mu)\(-gradf(x_k,y_k));
-end
-
 function d_k = conjGradients(x_k,y_k,x_prev,y_prev,d_prev)
 
-beta_k = gradf(x_k,y_k)'*( gradf(x_k,y_k)-gradf(x_prev,y_prev) )/(gradf(x_prev,y_prev)'*gradf(x_prev,y_prev));
-d_k = -gradf(x_k,y_k) + beta_k*d_prev;
+beta_k = gradg(x_k,y_k)'*( gradg(x_k,y_k)-gradg(x_prev,y_prev) )/(gradg(x_prev,y_prev)'*gradg(x_prev,y_prev));
+d_k = -gradg(x_k,y_k) + beta_k*d_prev;
 
 end
 
@@ -182,7 +160,7 @@ function [d_k,Delta_k] = quasiNewton(x_k,y_k,x_next,y_next,Delta_prev)
 xi = 0.5;
 
 
-q_k = gradf(x_next,y_next)-gradf(x_k,y_k);
+q_k = gradg(x_next,y_next)-gradg(x_k,y_k);
 p_k = [x_next-x_k;y_next-y_k];
 
 t_k = q_k'*Delta_prev*q_k;
@@ -190,17 +168,17 @@ v_k = p_k/(p_k' * q_k) - Delta_prev*q_k/t_k;
 Delta_k = Delta_prev + p_k*p_k'/(p_k' * q_k) - ...
     Delta_prev*q_k*q_k'*Delta_prev/(q_k'*Delta_prev*q_k) + xi*t_k*v_k*v_k';
 
-d_k = -Delta_k*gradf(x_k,y_k);
+d_k = -Delta_k*gradg(x_k,y_k);
 end
 
-function gamma = calcGamma(x_k, y_k, d_k, k, gammaMethod)
+function gamma = calcGamma(x_k, y_k, d_k, gammaMethod)
 
 if gammaMethod == 1
-    gamma = 0.5;
+    gamma = 0.04;
 elseif gammaMethod == 2
     
     % function to be minimized with respect to gamma
-    func = @(gamma) f(x_k+gamma*d_k(1) , y_k+gamma*d_k(2) );
+    func = @(gamma) g(x_k+gamma*d_k(1) , y_k+gamma*d_k(2) );
     
     % Golden Section Parameters
     l = 1e-3;
@@ -212,14 +190,19 @@ elseif gammaMethod == 2
     
 else
     
-    % Inital learning Rate
-    gamma0 = 0.3;
+    % Armijo's Condition
     
-    % Decay Parameter
-    a = 0.004;
+    s = 0.9;
+    beta = 0.8;
+    alpha = 0.05;
     
-    % Time-Based Decay
-     gamma = gamma0*exp(-a*k);
+    m_k = 0;
+    gamma = s*beta^m_k;
+    
+    while g(x_k,y_k)-g(x_k+gamma*d_k(1) , y_k+gamma*d_k(2) ) < -alpha*gamma*d_k'*gradg(x_k,y_k)
+        m_k = m_k + 1;
+        gamma = s*beta^m_k;
+    end
     
 end
 
@@ -259,7 +242,7 @@ function tracePlot (x,y,k,plotNum)
 trace_f = [];
 
 for i = 1:k
-    trace_f(i) = f(x(i),y(i));
+    trace_f(i) = g(x(i),y(i));
 end
 
 figure(plotNum)
@@ -268,7 +251,7 @@ plot3(x,y,trace_f,"-r+",'linewidth',1)
 
 % Plot minimum point
 hold on;
-plot3(x(end),y(end),f(x(end),y(end)),"-r*",'linewidth',7)
+plot3(x(end),y(end),g(x(end),y(end)),"-r*",'linewidth',7)
 
 end
 
