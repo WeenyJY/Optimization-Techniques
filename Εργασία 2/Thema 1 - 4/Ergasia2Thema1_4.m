@@ -49,21 +49,28 @@ for gammaMethod = 1 : 3
             f(x(end),y(end)),x(end),y(end),k);
         
         % Plot Trace
+        tracePlot (x,y,k,plotNum-2)
         tracePlot (x,y,k,plotNum-1)
-        tracePlot (x,y,k,plotNum)
+        
+        % Plot Objective function through iterations
+        objFuncReps(x,y,k,plotNum,i)
+        
     end
     
-    figure(plotNum-1)
+    figure(plotNum-2)
     title(['3D Plot - Steepest Descent - ',num2str(gammaStrings(gammaMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    zlabel("$$f(x,y)$$","interpreter","latex")
     
-    figure(plotNum)
+    figure(plotNum-1)
     title(['2D Plot - Steepest Descent - ',num2str(gammaStrings(gammaMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    
+    figure(plotNum)
+    sgtitle(['Objective Function through Iterations - Steepest Descent Method - ',num2str(gammaStrings(gammaMethod))])
+    
 end
 
 %% Newton's Method
@@ -89,28 +96,35 @@ for gammaMethod = 1 : 3
             fprintf("Gamma is optimized using Armijo's Condition \n")
         end
         
-        % Steepest Descent
+        % Newton Method
         [x,y,k] = newtonsMethod(x_1(i),y_1(i),e,gammaMethod);
         
         fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
             f(x(end),y(end)),x(end),y(end),k);
         
         % Plot Trace
+        tracePlot (x,y,k,plotNum-2)
         tracePlot (x,y,k,plotNum-1)
-        tracePlot (x,y,k,plotNum)
+        
+        % Plot Objective function through iterations
+        objFuncReps(x,y,k,plotNum,i)
+        
     end
     
-    figure(plotNum-1)
+    figure(plotNum-2)
     title(['3D Plot - Newton''s Method - ',num2str(gammaStrings(gammaMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    zlabel("$$f(x,y)$$","interpreter","latex")
     
-    figure(plotNum)
+    figure(plotNum-1)
     title(['2D Plot - Newton''s Method - ',num2str(gammaStrings(gammaMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    
+    figure(plotNum)
+    sgtitle(['Objective Function through Iterations - Newton''s Method - ',num2str(gammaStrings(gammaMethod))])
+    
 end
 
 %% Levenberg-Marquardt Method
@@ -136,39 +150,44 @@ for gammaMethod = 1 : 3
             fprintf("Gamma is optimized using Armijo's Condition \n")
         end
         
-        % Steepest Descent
+        % Levenberg-Marquardt Method
         [x,y,k] = levenbergMarquardt(x_1(i),y_1(i),e,gammaMethod);
         
         fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
             f(x(end),y(end)),x(end),y(end),k);
         
         % Plot Trace
+        tracePlot (x,y,k,plotNum-2)
         tracePlot (x,y,k,plotNum-1)
-        tracePlot (x,y,k,plotNum)
+        
+        % Plot Objective function through iterations
+        objFuncReps(x,y,k,plotNum,i)
+        
     end
     
-    figure(plotNum-1)
+    figure(plotNum-2)
     title(['3D Plot - Levenberg-Marquardt Method - ',num2str(gammaStrings(gammaMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    zlabel("$$f(x,y)$$","interpreter","latex")
     
-    figure(plotNum)
+    figure(plotNum-1)
     title(['2D Plot - Levenberg-Marquardt Method - ',num2str(gammaStrings(gammaMethod))])
     xlabel("x")
     ylabel("y")
-    zlabel("f(x,y)")
+    
+    figure(plotNum)
+    sgtitle(['Objective Function through Iterations - Levenberg-Marquardt Method - ',num2str(gammaStrings(gammaMethod))])
+    
 end
-
-
 
 %% Save Plots
 
 % for i = 1 : plotNum
 %     figure(i)
-%       if (mod(i,2)==1)
-%          view(-130,40)
-%       end
+%     if (mod(i,3)==1)
+%         view(-130,40)
+%     end
 %     savePlot([mfilename,'_',num2str(i)])
 % end
 
@@ -190,9 +209,7 @@ for i = 1:length(x)
     end
 end
 
-
-
-figure(plotNum+1)
+figure(plotNum + 1)
 surf(X,Y,func)
 view(-10,25)
 colorbar
@@ -201,7 +218,7 @@ figure(plotNum + 2)
 contour(X,Y,func,20)
 colorbar
 
-plotNum = plotNum + 2;
+plotNum = plotNum + 3;
 
 end
 
@@ -373,8 +390,26 @@ plot3(x(end),y(end),f(x(end),y(end)),"-r*",'linewidth',7)
 
 end
 
-% Function to automatically save plots in high resolution
+% Plot Objetive Function through Iterations
+function objFuncReps(x,y,k,plotNum,subNum)
 
+trace_f = [];
+k = min(k,50);
+
+for i = 1:k
+    trace_f(i) = f(x(i),y(i));
+end
+
+figure(plotNum)
+subplot(3,1,subNum)
+plot(0:k-1,trace_f,"-r+",'linewidth',1)
+title(["Initial Point: $$(x,y)$$=("+num2str(x(1))+","+num2str(y(1))+")"],"interpreter","latex")
+xlabel("Iterations k")
+ylabel("$$f(x,y)$$","interpreter","latex")
+
+end
+
+% Function to automatically save plots in high resolution
 function savePlot(name)
 
 % Resize current figure to fullscreen for higher resolution image
