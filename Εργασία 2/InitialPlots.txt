@@ -1,5 +1,5 @@
 view(40,30)
-title("$$g(x,y)=x^4+y^2-0.2sin(2*\pi*x)-0.3cos(2*\pi*y)$$","Interpreter","latex")
+title("Objective Function $$g(x,y)=x^4+y^2-0.2sin(2 \pi x)-0.3cos(2 \pi y)$$","Interpreter","latex")
 xlabel("x")
 ylabel("y")
 zlabel("$$g(x,y)$$","Interpreter","latex")
