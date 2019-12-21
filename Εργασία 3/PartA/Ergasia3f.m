@@ -3,7 +3,6 @@
 % Project 3 -
 %
 
-
 %% Clean the screen
 
 clc
@@ -12,39 +11,44 @@ close all;
 format long;
 
 %% Parameters
-e = 1e-4;
+e = 1e-3;
 plotNum = 0;
 
 % Inital Conditions
-x_1 = 5;
-y_1 = -10;
+x_1 = [28,5,29,4];
+y_1 = [-23,-24,-6,-5.5];
 
 % Boundaries
+global a1 b1 a2 b2
+
 a1 = 3;
 b1 = 30;
 a2 = -25;
 b2 = -5;
 
-%% Steepest Descent
-fprintf("####### STEEPEST DESCENT #######\n\n")
+%% Steepest Descent - f(x,y)
+fprintf("####### STEEPEST DESCENT - f(x,y) #######\n\n")
 
 % Count Number of Plots
-plotNum = plotFunction(plotNum,a1,b1,a2,b2);
-
-fprintf("Initial Conditions [x,y] =  [%f,%f]\n",x_1,y_1);
+plotNum = plotFunction(plotNum);
+% For all Initial Conditions
+for i=1:length(x_1)
+        
+fprintf("Initial Conditions [x,y] =  [%f,%f]\n",x_1(i),y_1(i));
 
 % Steepest Descent
-[x,y,k] = steepestDescent(x_1,y_1,e,a1,b1,a2,b2);
+[x,y,k] = steepestDescent(x_1(i),y_1(i),e);
 
-if k < 101
+if k < 50001
     fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
         f(x(end),y(end)),x(end),y(end),k);
 end
 
 % Plot Trace
-tracePlot (x,y,k,plotNum-1)
-tracePlot (x,y,k,plotNum)
-
+color = rand(1,3);
+tracePlot (x,y,k,plotNum-1,color)
+tracePlot (x,y,k,plotNum,color)
+end
 
 figure(plotNum-1)
 title('3D Plot - Steepest Descent - Optimized Gamma')
@@ -77,40 +81,56 @@ res = x.*y+2*(x-y).^2;
 
 end
 
-% Beta function
-function res = Beta(x,y,a1,b1,a2,b2)
+function res = gradf(x,y)
 
-h{1} = @(x,y) a1-x;
-h{2} = @(x,y) x-b1;
-h{3} = @(x,y) a2-y;
-h{4} = @(x,y) y-b2;
+res = [4*x-3*y ; -3*x+4*y];
 
-F = @(x,y,h) -1/h; 
+end
 
-res = 0;
-for i = 1:4
-    res = res + F(x,y,h{i}(x,y));
+% Auxiliary Function and the derivative
+function res = phiFun(n)
+global a1 a2 b1 b2
+
+h{1} = @(x,y) (a1-x);
+h{2} = @(x,y) (x-b1);
+h{3} = @(x,y) (a2-y);
+h{4} = @(x,y) (y-b2);
+
+gradh{1} = @(x,y) [-1;0];
+gradh{2} = @(x,y) [1;0];
+gradh{3} = @(x,y) [0;-1];
+gradh{4} = @(x,y) [0;1];
+
+F = @(h) (-1/h ).* (h < 0) + 1e+25.*(h>=0) ; 
+gradF = @(h) (1./h.^2).* (h < 0)  + 1e+25.*(h>=0) ;
+
+Beta = @(x,y) F(h{1}(x,y))+F(h{2}(x,y))+F(h{3}(x,y))+F(h{4}(x,y));
+gradBeta = @(x,y) gradF(h{1}(x,y))*gradh{1}(x,y) +gradF(h{2}(x,y))*gradh{2}(x,y)+gradF(h{3}(x,y))*gradh{3}(x,y)+gradF(h{4}(x,y))*gradh{4}(x,y);
+
+alpha = 2;
+
+if n==1
+    res = @(x,y,r) (gradf(x,y)+r*gradBeta(x,y));
+else
+    res = @(x,y) alpha * f(x,y)/Beta(x,y);
 end
 
 end
 
-% Auxiliary Function 
-function res = phi(x,y,a1,a2,b1,b2)
 
-r_k = 0.5;
-res = f(x,y)+r_k*Beta(x,y,a1,b1,a2,b2);
-
+function res = gradphi(x,y,r)
+func = phiFun(1);
+res = func(x,y,r);
 end
 
-% Derivative of the Auxiliary Function
-function res = gradphi(x,y)
-
-res = 
-
+function res = r0(x,y)
+func = phiFun(2);
+res = func(x,y);
 end
 
 % Plot given Function
-function plotNum = plotFunction(plotNum,a1,b1,a2,b2)
+function plotNum = plotFunction(plotNum)
+global a1 a2 b1 b2
 
 x =a1-3:0.1:b1+3;
 y =a2-3:0.1:b2+3;
@@ -135,81 +155,48 @@ line(a1*ones(size(t)),b1*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineSt
 line(b1*ones(size(t)),b2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 line(b1*ones(size(t)),a2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 
-figure(plotNum + 2)
+figure(plotNum+2)
 contour(X,Y,func,20)
 colorbar
 rectangle('Position',[a1 a2 b1-a1 b2-a2],'linewidth',3,'EdgeColor','#EDB120','LineStyle','--');
 
-plotNum = plotNum + 3;
+plotNum = plotNum + 2;
 
 end
 
 % Steepest Descent Method
-function [x,y,k] = steepestDescent(x,y,e,a1,b1,a2,b2)
+function [x,y,k] = steepestDescent(x,y,e)
 k = 1;
 d = [];
-gamma = [];
+gamma = 0.005;
+r = r0(x,y);
 
-while( norm( gradphi(x(k),y(k)) ) >= e)
+c = 0.9;
+
+while( norm( gradphi(x(k),y(k),r(k)) ) >= e)
     
-    d(:,k) = - gradphi(x(k),y(k));
-    gamma(k) = calcGamma(x(k),y(k),d(:,k),a1,b1,a2,b2);
-    x(k+1) = x(k) + gamma(k)*d(1,k);
-    y(k+1) = y(k) + gamma(k)*d(2,k);
+    f_prev=f(x(end),y(end));    
+    
+    d(:,k) = - gradphi(x(k),y(k),r(k));
+    x(k+1) = x(k) + gamma*d(1,k);
+    y(k+1) = y(k) + gamma*d(2,k);
+    r(k+1) = c *r(k);
     
     k = k + 1;
-    if k>50000
+    f_xk=f(x(end),y(end));
+       
+    if abs((f_xk-f_prev)/f_xk)<= e
+        break
+    elseif k>50000
         fprintf("Algorithm did not converge\n")
         break
     end
 end
 
 end
-function gamma = calcGamma(x_k, y_k, d_k,a1,b1,a2,b2)
-
-% function to be minimized with respect to gamma
-func = @(gamma) phi(x_k+gamma*d_k(1) , y_k+gamma*d_k(2) ,a1,b1,a2,b2);
-
-% Golden Section Parameters
-l = 1e-3;
-a = 1e-4;
-b = 2;
-
-% Minimization using Golden Section Method
-gamma = goldenSectionMethod(func,l,a,b);
-
-end
-
-function minX = goldenSectionMethod(func,l,a,b)
-
-gamma = (-1+sqrt(5))/2;
-k = 1;
-x1(k)=a(k)+(1-gamma)*(b(k)-a(k));
-x2(k)=a(k)+gamma*(b(k)-a(k));
-
-while b(k)-a(k)>=l
-    
-    if(func(x1(k))<=func(x2(k)))
-        a(k+1)= a(k);
-        b(k+1) = x2(k);
-        x1(k+1) = a(k+1) + (1-gamma)*(b(k+1)-a(k+1));
-        x2(k+1) = x1(k);
-    else
-        a(k+1) = x1(k);
-        b(k+1)= b(k);
-        x1(k+1) = x2(k);
-        x2(k+1) = a(k+1) + gamma*(b(k+1)-a(k+1));
-    end
-    k = k + 1;
-end
-
-% Minimum point in the center of the final interval
-minX = (a(end)+b(end))/2;
-
-end
 
 % Plot trace
-function tracePlot (x,y,k,plotNum)
+function tracePlot (x,y,k,plotNum,num)
 
 trace_f = [];
 
@@ -219,11 +206,11 @@ end
 
 figure(plotNum)
 hold on;
-plot3(x,y,trace_f,"-r+",'linewidth',1)
+plot3(x,y,trace_f,'-+','color',num,'linewidth',1)
 
 % Plot minimum point
 hold on;
-plot3(x(end),y(end),f(x(end),y(end)),"-r*",'linewidth',7)
+plot3(x(end),y(end),f(x(end),y(end)),"-r*",'linewidth',4)
 
 end
 
