@@ -1,7 +1,7 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% Project 3 -
-%
+% Project 3 - Part A
+% Objective Function g(x,y)
 
 %% Clean the screen
 
@@ -52,13 +52,13 @@ figure(plotNum-1)
 title('3D Plot - Steepest Descent - Optimized Gamma')
 xlabel("x")
 ylabel("y")
-zlabel("f(x,y)")
+zlabel("g(x,y)")
 
 figure(plotNum)
 title('2D Plot - Steepest Descent - Optimized Gamma')
 xlabel("x")
 ylabel("y")
-zlabel("f(x,y)")
+zlabel("g(x,y)")
 
 %% Save Plots
 
@@ -195,15 +195,15 @@ end
 % Plot trace
 function tracePlot (x,y,k,plotNum,num)
 
-trace_f = [];
+trace_g = [];
 
 for i = 1:k
-    trace_f(i) = g(x(i),y(i));
+    trace_g(i) = g(x(i),y(i));
 end
 
 figure(plotNum)
 hold on;
-plot3(x,y,trace_f,'-+','color',num,'linewidth',1)
+plot3(x,y,trace_g,'-+','color',num,'linewidth',1)
 
 % Plot minimum point
 hold on;

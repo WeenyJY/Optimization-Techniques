@@ -1,7 +1,7 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% Project 3 -
-%
+% Project 3 - Part B
+% Objective Function g(x,y)
 
 %% Clean the screen
 
@@ -25,7 +25,7 @@ b1 = -1;
 b2 = -1;
 
 %% Steepest Descent - f(x,y)
-fprintf("####### STEEPEST DESCENT - f(x,y) #######\n\n")
+fprintf("####### STEEPEST DESCENT - g(x,y) #######\n\n")
 
 % Count Number of Plots
 plotNum = plotFunction(plotNum);
@@ -37,10 +37,9 @@ fprintf("Initial Conditions [x,y] =  [%f,%f]\n",x_1(i),y_1(i));
 % Steepest Descent
 [x,y,k] = steepestDescent(x_1(i),y_1(i),e);
 
-if k < 50001
-    fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
+fprintf("Min(g) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
         g(x(end),y(end)),x(end),y(end),k);
-end
+
 
 % Plot Trace
 color = rand(1,3);
@@ -52,20 +51,20 @@ figure(plotNum-1)
 title('3D Plot - Steepest Descent - Optimized Gamma')
 xlabel("x")
 ylabel("y")
-zlabel("f(x,y)")
+zlabel("g(x,y)")
 
 figure(plotNum)
 title('2D Plot - Steepest Descent - Optimized Gamma')
 xlabel("x")
 ylabel("y")
-zlabel("f(x,y)")
+zlabel("g(x,y)")
 
 %% Save Plots
 
 % for i = 1 : plotNum
 %     figure(i)
 %       if (mod(i,2)==1)
-%          view(-5,-20)
+%          view(0,70)
 %       end
 %     savePlot([mfilename,'_',num2str(i)])
 % end
@@ -87,40 +86,18 @@ end
 
 
 % Auxiliary Function and the derivative
-function res = phiFun(n)
+function res = gradF(x,y,r)
 global b1 b2
 
-h{1} = @(x,y) (x-b1);
-h{2} = @(x,y) (y-b2);
+h{1} = @(x,y) (x-b1).*(x>b1);
+h{2} = @(x,y) (y-b2).*(x>b2);
 
-gradh{1} = @(x,y) [1;0];
-gradh{2} = @(x,y) [0;1];
+gradh{1} = @(x,y) [1.*(x>b1);0];
+gradh{2} = @(x,y) [0;1.*(y>b2)];
 
-F = @(h) (-1/h ).* (h < 0) + 1e+25.*(h>=0) ; 
-gradF = @(h) (1./h.^2).* (h < 0)  + 1e+25.*(h>=0) ;
-
-Beta = @(x,y) F(h{1}(x,y))+F(h{2}(x,y));
-gradBeta = @(x,y) gradF(h{1}(x,y))*gradh{1}(x,y) +gradF(h{2}(x,y))*gradh{2}(x,y);
-
-alpha = 2;
-
-if n==1
-    res = @(x,y,r) (gradg(x,y)+r*gradBeta(x,y));
-else
-    res = @(x,y) alpha * g(x,y)/Beta(x,y);
-end
-
-end
-
-
-function res = gradphi(x,y,r)
-func = phiFun(1);
+func = @(x,y,r) (gradg(x,y)+r*(2*gradh{1}(x,y)*h{1}(x,y)+2*gradh{2}(x,y)*h{2}(x,y)));
 res = func(x,y,r);
-end
 
-function res = r0(x,y)
-func = phiFun(2);
-res = func(x,y);
 end
 
 % Plot given Function
@@ -165,29 +142,25 @@ end
 function [x,y,k] = steepestDescent(x,y,e)
 k = 1;
 d = [];
-gamma = 0.005;
-r = r0(x,y);
+gamma = 0.008;
+r0 = 0.5;
+c = 1.2;
 
-c = 0.9;
+r = r0;
 
-while( norm( gradphi(x(k),y(k),r(k)) ) >= e)
+while norm( gradF(x(k),y(k),r(k)) ) >= e && k < 5e3
+     
+    if gradF(x(k),y(k),r(k)) == gradg(x(k),y(k))
+        r(k) = r0;
+    end
     
-    f_prev=g(x(end),y(end));    
-    
-    d(:,k) = - gradphi(x(k),y(k),r(k));
+    d(:,k) = - gradF(x(k),y(k),r(k));
     x(k+1) = x(k) + gamma*d(1,k);
     y(k+1) = y(k) + gamma*d(2,k);
     r(k+1) = c *r(k);
     
     k = k + 1;
-    f_xk=g(x(end),y(end));
-       
-    if abs((f_xk-f_prev)/f_xk)<= e
-        break
-    elseif k>50000
-        fprintf("Algorithm did not converge\n")
-        break
-    end
+    
 end
 
 end
@@ -195,15 +168,15 @@ end
 % Plot trace
 function tracePlot (x,y,k,plotNum,num)
 
-trace_f = [];
+trace_g = [];
 
 for i = 1:k
-    trace_f(i) = g(x(i),y(i));
+    trace_g(i) = g(x(i),y(i));
 end
 
 figure(plotNum)
 hold on;
-plot3(x,y,trace_f,'-+','color',num,'linewidth',1)
+plot3(x,y,trace_g,'-+','color',num,'linewidth',1)
 
 % Plot minimum point
 hold on;

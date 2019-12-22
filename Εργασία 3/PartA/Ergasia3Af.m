@@ -1,7 +1,7 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% Project 3 -
-%
+% Project 3 - Part A
+% Objective Function f(x,y)
 
 %% Clean the screen
 
@@ -151,7 +151,7 @@ colorbar
 
 t = -1e+3:10:1e+4;
 line(a1*ones(size(t)),a2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
-line(a1*ones(size(t)),b1*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
+line(a1*ones(size(t)),b2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 line(b1*ones(size(t)),b2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 line(b1*ones(size(t)),a2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 

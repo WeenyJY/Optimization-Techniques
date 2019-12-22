@@ -1,7 +1,7 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% Project 3 -
-%
+% Project 3 - Part B
+% Objective Function f(x,y)
 
 %% Clean the screen
 
@@ -15,10 +15,8 @@ e = 1e-3;
 plotNum = 0;
 
 % Inital Conditions
-x_1 = [28,5,29,4];
-y_1 = [-23,-24,-6,-5.5];
-% x_1 = 8;
-% y_1 = -15;
+x_1 = [28,5,32,19];
+y_1 = [-13,-24,-10,-26];
 
 % Boundaries
 global a1 b1 a2 b2
@@ -41,10 +39,9 @@ fprintf("Initial Conditions [x,y] =  [%f,%f]\n",x_1(i),y_1(i));
 % Steepest Descent
 [x,y,k] = steepestDescent(x_1(i),y_1(i),e);
 
-if k < 50001
-    fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
+fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
         f(x(end),y(end)),x(end),y(end),k);
-end
+
 
 % Plot Trace
 color = rand(1,3);
@@ -69,7 +66,7 @@ zlabel("f(x,y)")
 % for i = 1 : plotNum
 %     figure(i)
 %       if (mod(i,2)==1)
-%          view(-5,-20)
+%          view(0,70)
 %       end
 %     savePlot([mfilename,'_',num2str(i)])
 % end
@@ -93,10 +90,10 @@ end
 function res = gradF(x,y,r)
 global a1 a2 b1 b2
 
-h{1} = @(x,y) ((a1-x)).*(x<a1);
-h{2} = @(x,y) ((x-b1)).*(x>b1);
-h{3} = @(x,y) ((a2-y)).*(y<a2);
-h{4} = @(x,y) ((y-b2)).*(y>b2);
+h{1} = @(x,y) (a1-x).*(x<a1);
+h{2} = @(x,y) (x-b1).*(x>b1);
+h{3} = @(x,y) (a2-y).*(y<a2);
+h{4} = @(x,y) (y-b2).*(y>b2);
 
 gradh{1} = @(x,y) [-1.*(x<a1);0];
 gradh{2} = @(x,y) [1.*(x>b1);0];
@@ -112,8 +109,8 @@ end
 function plotNum = plotFunction(plotNum)
 global a1 a2 b1 b2
 
-x =a1-3:0.1:b1+3;
-y =a2-3:0.1:b2+3;
+x =a1-3:0.2:b1+3;
+y =a2-3:0.2:b2+3;
 
 [X,Y] = meshgrid(x,y);
 
@@ -131,7 +128,7 @@ colorbar
 
 t = -1e+3:10:1e+4;
 line(a1*ones(size(t)),a2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
-line(a1*ones(size(t)),b1*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
+line(a1*ones(size(t)),b2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 line(b1*ones(size(t)),b2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 line(b1*ones(size(t)),a2*ones(size(t)),t,'linewidth',3,'Color','#EDB120','LineStyle','--');
 
@@ -148,17 +145,14 @@ end
 function [x,y,k] = steepestDescent(x,y,e)
 k = 1;
 d = [];
-gamma = 0.005;
-r0 = 0.1;
-c = 1.1;
-
+gamma = 0.008;
+r0 = 0.5;
+c = 1.2;
 
 r = r0;
 
-while norm( gradF(x(k),y(k),r(k)) ) >= e
+while norm( gradF(x(k),y(k),r(k)) ) >= e && k < 5e3
      
-    f_prev=f(x(end),y(end));    
-    
     if gradF(x(k),y(k),r(k)) == gradf(x(k),y(k))
         r(k) = r0;
     end
@@ -169,15 +163,7 @@ while norm( gradF(x(k),y(k),r(k)) ) >= e
     r(k+1) = c *r(k);
     
     k = k + 1;
-    f_xk=f(x(end),y(end));
     
-    
-    if abs((f_xk-f_prev)/f_xk)<= e
-        break
-    elseif k>50000
-        fprintf("Algorithm did not converge\n")
-        break
-    end
 end
 
 end
