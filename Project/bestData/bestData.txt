@@ -1,0 +1,53 @@
+chromosomes: 250
+mutation parameter: 0.8
+crossover parameter: 0.8
+
+Generation 1 
+Current Fittest Evaluation: 0.001011 
+Generation 500 
+Current Fittest Evaluation: 0.024171 
+Generation 1000 
+Current Fittest Evaluation: 0.026160 
+Generation 1500 
+Current Fittest Evaluation: 0.026285 
+Generation 2000 
+Current Fittest Evaluation: 0.026378 
+Generation 2500 
+Current Fittest Evaluation: 0.026440 
+Generation 3000 
+Current Fittest Evaluation: 0.026470 
+Generation 3500 
+Current Fittest Evaluation: 0.026485 
+Generation 4000 
+Current Fittest Evaluation: 0.026523 
+Generation 4500 
+Current Fittest Evaluation: 0.026542 
+Generation 5000 
+Current Fittest Evaluation: 0.026568 
+
+Fitness of the fittest chromosome: 0.026568 
+
+Fittest Chromosome: 
+
+  35.684010712247016
+  26.005612869156387
+  38.032886698178345
+  10.926652759336953
+  26.681999072966999
+  22.275552677416261
+  13.259832573630646
+   1.584294225830237
+  11.667393763662547
+  17.323229459167109
+   6.877211135834149
+  22.169453691430778
+  14.910295599574500
+  43.861443647203714
+  29.317192727524059
+  26.305384371856388
+
+MSE of Constraints: 0.058066 
+
+Objective Function's Minimum: 37117.365704 
+
+Elapsed time is 309.028664 seconds.

@@ -1,0 +1,49 @@
+Generation 1 
+Current Fittest Evaluation: 0.000820 
+Generation 1000 
+Current Fittest Evaluation: 0.022712 
+Generation 2000 
+Current Fittest Evaluation: 0.023699 
+Generation 3000 
+Current Fittest Evaluation: 0.024384 
+Generation 4000 
+Current Fittest Evaluation: 0.024712 
+Generation 5000 
+Current Fittest Evaluation: 0.025390 
+Generation 6000 
+Current Fittest Evaluation: 0.025742 
+Generation 7000 
+Current Fittest Evaluation: 0.025829 
+Generation 8000 
+Current Fittest Evaluation: 0.025935 
+Generation 9000 
+Current Fittest Evaluation: 0.025982 
+Generation 10000 
+Current Fittest Evaluation: 0.026061 
+
+Fitness of the fittest chromosome: 0.026061 
+
+Fittest Chromosome: 
+
+  34.200004177645923
+  28.675369413133186
+  36.741171971497003
+   6.684453208536651
+  27.838038228902207
+  11.417345751546172
+  22.630966792833878
+  10.540975345648059
+  12.006850273126801
+  17.847243392208647
+   5.447535597139538
+  15.501910886321468
+  21.832886233230067
+  42.724476583284172
+  30.258363625214827
+  26.482432203384498
+
+MSE of Constraints: 0.073595 
+
+Objective Function's Minimum: 37709.682121 
+
+Elapsed time is 374.592096 seconds.

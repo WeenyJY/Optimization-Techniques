@@ -23,7 +23,7 @@ c = [59.85, 43.05, 53.55, 26.25, ...
 a = ones(1,16);
 
 % Minimum time t_i
-t = rand*c/2;
+t = c/4;
 
 % Initial Objective Function
 f = @(x) sum(x.*t + a.*(x.^2)./(1-x./c));
@@ -42,16 +42,18 @@ h = @(x) [ ...
     x(14)+x(15)+x(16)-V];
 
 % Inequality Constraints
-lb = [zeros(1,16),-Inf*ones(1,9)]; % x >= 0
-ub = [c,Inf*ones(1,9)]; % x <= c , lambda < Infinity
+lb = zeros(1,16); % x >= 0
+ub = c; % x <= c , lambda < Infinity
 
-r = 1e6;
+r = 1e3;
 
 % Augmented Lagrangian
 func = @(params) f(params(1:16)) + params(17:25)*h(params(1:16))+r*h(params(1:16))'*h(params(1:16));
+% func = @(params) r/(f(params(1:16)) + r*sum(abs(h(params(1:16)))));
 
 %% Testing
 
-options = optimoptions('ga','PlotFcn', @gaplotbestf);
+options = optimoptions('ga','FunctionTolerance',0,'PlotFcn', @gaplotbestf);
 
 [x,fval,exitflag,output,population,scores]  = ga(func,25,[],[],[],[],lb,ub,[],options);
+f(x(1:16))

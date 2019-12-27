@@ -1,7 +1,7 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% The Project - Parameters Estimation
-% Parameters Estimation using Genetic Algorithm
+% The Project
+% Constrained Minimization Problem using Genetic Algorithm
 
 %% Clean the screen
 
@@ -11,53 +11,75 @@ close all;
 format long;
 
 tic
-%% Function to be estimated
 
-% Intput Vector: u
-f = @(u) sin(u(1)+u(2))*sin(u(1).^2);
+%% Parameters
 
-%% Plot Function to be etsimated
+% Number of Chromosomes in every Population
+chromeNum = 200;
 
-% Count Number of Plots
-plotNum = 0;
+% Number of Parameters (Genes) in every Chromosome
+geneNumber = 16;
 
-plotNum = plotFunction(plotNum,f);
+% Number of generations until termination
+generationsNum = 10000;
 
-figure(plotNum-1)
-title('3D Plot - $$ f(u_1,u_2) = sin(u_1+u_2) \cdot sin(u_1^2) $$','Interpreter','Latex')
-xlabel('$$ u_1 $$','Interpreter','Latex')
-ylabel('$$ u_2 $$','Interpreter','Latex')
+%% Problem - Fitness Function Definition 
+% Rate of Incoming Vehicles
+V = 100;
 
-figure(plotNum)
-title('2D Plot - $$ f(u_1,u_2) = sin(u_1+u_2) \cdot sin(u_1^2) $$','Interpreter','Latex')
-xlabel('$$ u_1 $$','Interpreter','Latex')
-ylabel('$$ u_2 $$','Interpreter','Latex')
+% Road Capacity c_i (Row Vector)
+c = [59.85, 43.05, 53.55, 26.25, ...
+    44.10, 64.05, 36.75, 35.70, ...
+    13.65, 21.00, 54.60, 63.00, ...
+    33.60, 54.60, 46.20, 31.50];
 
-pause(0.01);
+% Constant a_i
+a = ones(1,geneNumber);
+
+% Minimum time t_i
+t = c/4;
+
+% Initial Objective Function
+f = @(x) sum(x.*t + a.*(x.^2)./(1-x./c));
+
+% Equality Constraints
+h = @(x) [ ...
+    % 9 Equalities
+    x(1)+x(2)+x(3)-V;
+    x(6)+x(7)-x(1);
+    x(8)+x(9)-x(7);
+    x(15)-x(9)-x(10);
+    x(5)+x(6)+x(8)-x(10)-x(11)-x(16);
+    x(3)+x(4)-x(5)-x(12);
+    x(2)-x(4)-x(13);
+    x(11)+x(12)+x(13)-x(14);
+    x(14)+x(15)+x(16)-V];
+
+% Inequality Constraints
+global lb ub
+lb = zeros(1,geneNumber); % x >= 0
+ub = c; % x <= c
+
+r = 1e3;
+
+% Fittness Function
+fitnessFunc = @(x) r/(f(x) + r*h(x)'*h(x));
+% fitnessFunc2 = @(params) 1 / (1 + f(params(1:16)) ) + 1 / (1 + sum(abs(h(params(1:16)))) );
 
 %% Initialization
 
-% Number of Chromosomes in every Population
-chromeNum = 50;
-
-% Number of Gaussians in every Chromosome
-gaussiansNum = 15;
-
-% Number of generations until termination
-generationsNum = 100;
-
 % Initialize Population of Chromosomes
-% population(gaussian_i,parameter_j,chromosome_k)
-population = initPopulation(gaussiansNum,chromeNum);
-fitnessPop = fitnessEvaluation(population,f);
+% population(parameter_i,chromosome_j) in range (lb,ub)
+population = initPopulation(geneNumber,chromeNum);
+fitnessPop = fitnessEvaluation(population,fitnessFunc);
 
 % Keep track of the fittest chromosome
 fittest = zeros(generationsNum,1);
 fittest(1) = max(fitnessPop);
 fprintf("Generation 1 \nCurrent Fittest Evaluation: %f \n",fittest(1))
-        
-% Crossover decay through generations
-decayFun = @(mag,gen) mag*exp(2*(1-gen)/generationsNum);
+
+% Crossover - Mutation Parameter Decay through generations
+% decayFun = @(mag,gen) mag*exp(2*(1-gen)/generationsNum);
 
 %% Genetic Algorithm
 
@@ -65,24 +87,24 @@ decayFun = @(mag,gen) mag*exp(2*(1-gen)/generationsNum);
 generations = 1;
 
 while generations <= generationsNum
-
-    % Keep the previous population
+    
+    % Keep the previous population (for Elitism)
     prevPopulation = population;
     
     % Selection
     population = selectionProcess(population,fitnessPop);
     
     % Crossover - Crossover Parameter = 80%
-    population = crossoverProcess(population,0.80);%decayFun(0.80,generations));
+    population = crossoverProcess(population,0.8);%decayFun(0.80,generations));
     
-    % Mutation - Mutation Parameter = 20%
-    population = mutationProcess(population,0.20);%decayFun(0.01,generations));
+    % Mutation - Mutation Parameter = 80%
+    population = mutationProcess(population,0.8);%decayFun(0.80,generations));
     
-    % Elitism - Rate of Chromosomes to be passed directly = 5%
-    population = elitismProcess(population,prevPopulation,fitnessPop,0.05);
+    % Elitism - Rate of Chromosomes to be passed directly = 1%
+    population = elitismProcess(population,prevPopulation,fitnessPop,0.01);
     
     % Fitness Evaluation
-    fitnessPop = fitnessEvaluation(population,f);
+    fitnessPop = fitnessEvaluation(population,fitnessFunc);
     
     % Print Progress Message
     fittest(generations) = max(fitnessPop);
@@ -98,45 +120,27 @@ end
 
 %% Results - Evaluation
 
-% Best chromosome of the final population
+% Results
 [~,bestIdx] = max(fitnessPop);
-optimalChromosome = population(:,:,bestIdx);
-fprintf("\nFitness of the best chromosome: %f \n", fitnessPop(bestIdx) )
+optimalChromosome = population(bestIdx,:);
+fprintf("\nFitness of the fittest chromosome: %f \n\n", fitnessPop(bestIdx) )
 
-f_hat = @(u) ObjectiveFuncEstim(u,optimalChromosome);
+fprintf("Fittest Chromosome: \n\n")
+disp(optimalChromosome')
 
-% Mean Square Error
-MSE = 0;
-U_test = -2:0.015:2;
+fprintf("MSE of Constraints: %f \n\n", mse(h(optimalChromosome)))
 
-for u1 = U_test
-    for u2 = U_test
-        MSE = MSE + (f_hat([u1,u2])- f([u1,u2])).^2/length(U_test)^2;
-    end
-end
-fprintf("\nMean Square Error: %f \n",MSE)
+fprintf("Objective Function's Minimum: %f \n\n",f(optimalChromosome))
 
-% Plot Function Estimation
-plotNum = plotFunction(plotNum,f_hat);
-
-figure(plotNum-1)
-title('3D Plot - Estimated $$ \hat{f}(u_1,u_2)  $$','Interpreter','Latex')
-xlabel('$$ u_1 $$','Interpreter','Latex')
-ylabel('$$ u_2 $$','Interpreter','Latex')
-
-figure(plotNum)
-title('2D Plot - Estimated $$ \hat{f}(u_1,u_2)  $$','Interpreter','Latex')
-xlabel('$$ u_1 $$','Interpreter','Latex')
-ylabel('$$ u_2 $$','Interpreter','Latex')
-
-plotNum = plotNum + 1;
-
-% Plot Fittest Chromosome's history
-figure(plotNum)
+% Plot Fittest Chromosome's trace
+figure
 plot(1:generationsNum,fittest)
 title('Fittest Chromosome - Fitness Evaluation through Generations')
 xlabel('Generations')
 ylabel('Fitness Evaluation')
+
+% Save Plot
+savePlot(mfilename)
 
 toc
 save data.mat
@@ -144,41 +148,28 @@ save data.mat
 
 %% Initialize Population
 
-function chrom = initPopulation(gaussiansNumber,chromeNumber)
-
-% 5 Genes for each Gaussian
-% Magnitude, Center1, Center2, Std1, Std2
-geneNumber = 5;
+function chrom = initPopulation(geneNumber,chromeNumber)
+% [lowerBound,upperBound]
+global lb ub
 
 % Random Initialize Population of Chromosomes
 % Every chromosome includes several genes (gaussians)
-% All Parameters initialized in [-4,4]
-chrom = rand(gaussiansNumber,geneNumber,chromeNumber)*8-4;
+% All Parameters initialized in [lowerBound,upperBound]
+
+chrom = rand(chromeNumber,geneNumber).*(ub-lb)+lb;
 
 end
 
 %% Fittness Evaulation
 
-% terminate the Genetic Algorithm after a specific event
-function fitChrome = fitnessEvaluation(population,f)
+function fitChrome = fitnessEvaluation(population,fitnessFunc)
 
-% Dataset to be used
-U = -2:0.05:2;
+fitChrome = zeros(size(population,1),1);
 
-fitChrome = zeros(size(population,3),1);
-
-% For every input set of inputs (u1,u2) in the Dataset calculate fitness of the chromosome i
-for i = 1:size(population,3)
-    
-    for u1 = U
-        for u2 = U
-            fitChrome(i) = fitChrome(i) + fitnessCalc(f,[u1;u2],population(:,:,i));
-        end
-    end
-    
+% Calculate fitness of every chromosome in population
+for i = 1:size(population,1)
+    fitChrome(i) = fitnessFunc(population(i,:));
 end
-
-fitChrome = fitChrome/length(U)^2;
 
 end
 
@@ -191,7 +182,7 @@ newPopulation = zeros(size(population));
 counter = 1;
 
 % Choose Chromosomes to survive
-while counter <= size(newPopulation,3)
+while counter <= size(newPopulation,1)
     
     % Split probabilities into segments
     % Ex: Segment 1 : [0,prob(1)]
@@ -213,7 +204,7 @@ while counter <= size(newPopulation,3)
     end
     
     % Pass the "lucky" chromosome to the next generation
-    newPopulation(:,:,counter) = population(:,:,index);
+    newPopulation(counter,:) = population(index,:);
     
     counter = counter + 1;
     
@@ -224,38 +215,37 @@ end
 %% Crossover Process
 function newPopulation = crossoverProcess(population,crossParam)
 
-
 offspring = population;
 
 counter = 1;
 
-while counter <= size(population,3)
+while counter <= size(population,1)
     
     prob = rand;
     
     if prob < crossParam
         
         % Choose 2 parent-chromosomes randomly
-        parents = population(:,:,randi([1,size(population,3)],2,1));
+        parents = population(randi([1,size(population,1)],2,1),:);
         
-        % Choose position of gene (gaussian) exchange randomly
-        crossPos = randi([1,size(population,1)-1]);
+        % Choose position of gene exchange randomly
+        crossPos = randi([1,size(population,2)-1]);
         
-        % ie. parent1   = [gene11; gene12; gene13]
-        %     parent2   = [gene21; gene22; gene23]
+        % ie. parent1   = [gene11, gene12, gene13]
+        %     parent2   = [gene21, gene22, gene23]
         %     crossPos  = 2
-        %     offspring = [gene11; gene12; gene23]
-        offspring(:,:,counter) = [parents(1:crossPos,:,1);parents(crossPos+1:end,:,2)];
+        %     offspring = [gene11, gene12, gene23]
+        offspring(counter,:) = [parents(1,1:crossPos),parents(2,crossPos+1:end)];
         
     end
     
-    counter = counter + 1;
+    counter = counter + 2;
     
 end
 
 % Shuffle the population
-idx = randperm(size(population,3));
-newPopulation = offspring(:,:,idx);
+idx = randperm(size(population,1));
+newPopulation = offspring(idx,:);
 
 end
 
@@ -263,24 +253,26 @@ end
 %% Mutation Process
 function newPopulation = mutationProcess(population,mutParam)
 
+global lb ub
+
 newPopulation = population;
 
 counter = 1;
 
-while counter <= size(population,3)
+while counter <= size(population,1)
     
     prob = rand;
     
     if prob < mutParam
-                
+        
         % Random Gene's Position
         randGenePos = randi([1,size(population,2)]);
         
         % New Random Gene ~ Normal Distribution
-        newGene = randn(size(population,2),1)*2;
+        newGene = rand*(ub(randGenePos)-lb(randGenePos))+lb(randGenePos);
         
         % Random Gene Mutation
-        newPopulation(randGenePos,:,counter) = newGene';
+        newPopulation(counter,randGenePos) = newGene';
     end
     
     counter = counter + 1;
@@ -292,78 +284,16 @@ end
 
 %% Elitism Process
 function newPopulation = elitismProcess(population,prevPopulation,fitnessPop,elitParam)
-    
-    newPopulation = population;
-    [~,Idx] = sort(fitnessPop,'descend');
-    for i = 1 : ceil(elitParam*size(population,3))
-       newPopulation(:,:,Idx(end+1-i))= prevPopulation(:,:,Idx(i)); 
-    end
-    
-end
 
-%% Other Functions
-
-% Fitness Function
-%[Objective Function: f, Input Vector: u, Parameter's Matrix: chromosome]
-function fit = fitnessCalc(f,u,chromosome)
-
-% Choose fittness function formula - normalized
-% fitnessFunc = @(x) 1 / (1+abs(x));
-fitnessFunc = @(x) 1 / (1+x.^2);
-
-f_hat = ObjectiveFuncEstim(u,chromosome);
-
-% Substruct target function to get the error
-error = f_hat - f(u);
-
-fit = fitnessFunc(error);
-
-end
-
-% Objective Function Estimation
-% [Input: u , Parameter's Matrix: chromosome]
-function func = ObjectiveFuncEstim(u,chromosome)
-
-% Every row of has 5 genes - gaussian Parameters
-G = @(gauss) gauss(1)*exp(-(u(1)-gauss(2))^2/(2*gauss(4)^2)-(u(2)-gauss(3))^2/(2*gauss(5)^2));
-
-func = 0;
-% Add all Gaussians
-for i = 1:size(chromosome,1)
-    func = func + G(chromosome(i,:));
+newPopulation = population;
+[~,Idx] = sort(fitnessPop,'descend');
+for i = 1 : ceil(elitParam*size(population,1))
+    newPopulation(Idx(end+1-i),:)= prevPopulation(Idx(i),:);
 end
 
 end
 
-% Plot the function f (3D + 2D)
-function plotNum = plotFunction(plotNum,f)
-
-x = linspace(-2, 2, 100);
-y = linspace(-2, 2, 100);
-
-[X,Y] = meshgrid(x,y);
-
-func = [];
-for i = 1:length(x)
-    for j = 1:length(y)
-        func(i,j) = f([X(i,j);Y(i,j)]);
-    end
-end
-
-figure(plotNum+1)
-surf(X,Y,func)
-view(160,40)
-colorbar
-
-figure(plotNum + 2)
-contour(X,Y,func,20)
-colorbar
-
-plotNum = plotNum + 2;
-
-end
-
-% Function to automatically save plots in high resolution
+%% Function to automatically save plots in high resolution
 function savePlot(name)
 
 % Resize current figure to fullscreen for higher resolution image
