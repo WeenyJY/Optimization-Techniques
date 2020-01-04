@@ -1,6 +1,6 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% The Project - Constant Rate of Incoming Vehicles
+% The Project - Changing Rate of Incoming Vehicles
 % Constrained Minimization Problem using Genetic Algorithm
 
 %% Clean the screen
@@ -15,15 +15,15 @@ tic
 %% Parameters
 
 % Number of Chromosomes in every Population
-chromeNum = 200;
+chromeNum = 1000;
 
 % Number of Parameters (Genes) in every Chromosome
 geneNumber = 16;
 
 % Number of generations until termination
-generationsNum = 10000;
+generationsNum = 500;
 
-%% Problem - Fitness Function Definition 
+%% Problem - Fitness Function Definition
 % Rate of Incoming Vehicles
 V = 100;
 
@@ -44,26 +44,30 @@ f = @(x) sum(x.*t + a.*(x.^2)./(1-x./c));
 
 % Equality Constraints
 h = @(x) [ ...
-    % 9 Equalities
-    x(1)+x(2)+x(3)-V;
+    % 7 Equalities
     x(6)+x(7)-x(1);
     x(8)+x(9)-x(7);
     x(15)-x(9)-x(10);
     x(5)+x(6)+x(8)-x(10)-x(11)-x(16);
     x(3)+x(4)-x(5)-x(12);
     x(2)-x(4)-x(13);
-    x(11)+x(12)+x(13)-x(14);
-    x(14)+x(15)+x(16)-V];
+    x(11)+x(12)+x(13)-x(14)];
 
 % Inequality Constraints
 global lb ub
 lb = zeros(1,geneNumber); % x > 0
 ub = c; % x < c
 
+g = @(x) [ ...
+    x(1)+x(2)+x(3)-1.1*V;
+    0.9*V-x(1)-x(2)-x(3);
+    x(14)+x(15)+x(16)-1.1*V;
+    0.9*V-x(14)-x(15)-x(16)];
+
 r = 1e3;
 
 % Fittness Function
-fitnessFunc = @(x) r/(f(x) + r*h(x)'*h(x));
+fitnessFunc = @(x) r/(f(x) + r*h(x)'*h(x) + r*sum(abs(g(x))));
 % fitnessFunc2 = @(params) 1 / (1 + f(params(1:16)) ) + 1 / (1 + sum(abs(h(params(1:16)))) );
 
 %% Initialization
@@ -125,7 +129,12 @@ fprintf("\nFitness of the fittest chromosome: %f \n\n", fitnessPop(bestIdx) )
 fprintf("Fittest Chromosome: \n\n")
 disp(optimalChromosome')
 
-fprintf("MSE of Constraints: %f \n\n", mse(h(optimalChromosome)))
+eq = h(optimalChromosome);
+ineq = g(optimalChromosome);
+
+fprintf("MSE of Equality Constraints: %f \n", mse(eq))
+fprintf("MSE of Inequality Constraints: %f \n\n", ...
+    mse([min(ineq(1:2))*(min(ineq(1:2))>0);min(ineq(3:4))*(min(ineq(3:4))>0)]))
 
 fprintf("Objective Function's Minimum: %f \n\n",f(optimalChromosome))
 
@@ -136,13 +145,11 @@ title('Fittest Chromosome - Fitness Evaluation through Generations')
 xlabel('Generations')
 ylabel('Fitness Evaluation')
 
-
-toc
-
 % Save Plot
 savePlot(mfilename)
 
-save data2.mat
+toc
+save data.mat
 %% Functions
 
 %% Initialize Population

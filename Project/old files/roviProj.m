@@ -41,6 +41,18 @@ h = @(x) [ ...
     x(11)+x(12)+x(13)-x(14);
     x(14)+x(15)+x(16)-V];
 
+Aeq = [1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0;
+    -1 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0;
+    0 0 0 0 0 0  -1 1 1 0 0 0 0 0 0 0;
+    0 0 0 0 0 0 0  0 -1 -1 0 0 0 0 1 0;
+    0 0 0 0 1 1 0  1 0 -1 -1 0 0 0 0 -1;
+    0 0 1 1 -1 0 0 0 0 0 0 -1 0 0 0 0;
+    0 1 0 -1 0 0 0 0 0 0 0 0 -1 0 0 0;
+    0 0 0 0 0 0 0 0 0 0 1 1 1 -1 0 0;
+    0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1];
+
+beq = [V;zeros(7,1);V];
+
 % Inequality Constraints
 lb = zeros(1,16); % x >= 0
 ub = c; % x <= c , lambda < Infinity
@@ -48,12 +60,13 @@ ub = c; % x <= c , lambda < Infinity
 r = 1e3;
 
 % Augmented Lagrangian
-func = @(params) f(params(1:16)) + params(17:25)*h(params(1:16))+r*h(params(1:16))'*h(params(1:16));
+func = @(params) f(params(1:16));
+% func = @(params) f(params(1:16)) + params(17:25)*h(params(1:16))+r*h(params(1:16))'*h(params(1:16));
 % func = @(params) r/(f(params(1:16)) + r*sum(abs(h(params(1:16)))));
 
 %% Testing
 
-options = optimoptions('ga','FunctionTolerance',0,'PlotFcn', @gaplotbestf);
+options = optimoptions('ga','FunctionTolerance',0,'PlotFcn', @gaplotbestf,'MigrationFraction',0.8);
 
-[x,fval,exitflag,output,population,scores]  = ga(func,25,[],[],[],[],lb,ub,[],options);
+[x,fval,exitflag,output,population,scores]  = ga(func,16,[],[],Aeq,beq,lb,ub,[],options);
 f(x(1:16))
