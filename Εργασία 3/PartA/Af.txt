@@ -1,0 +1,13 @@
+####### STEEPEST DESCENT - f(x,y) #######
+
+Initial Conditions [x,y] =  [28.000000,-23.000000]
+Min(f) = 115.000559 at [x,y] = [3.035177,-5.035929] after 119 repetitions
+
+Initial Conditions [x,y] =  [5.000000,-24.000000]
+Min(f) = 115.077523 at [x,y] = [3.037597,-5.036305] after 104 repetitions
+
+Initial Conditions [x,y] =  [29.000000,-6.000000]
+Min(f) = 115.080689 at [x,y] = [3.037581,-5.036428] after 105 repetitions
+
+Initial Conditions [x,y] =  [4.000000,-5.500000]
+Min(f) = 115.084049 at [x,y] = [3.037590,-5.036534] after 76 repetitions

@@ -15,8 +15,8 @@ e = 1e-3;
 plotNum = 0;
 
 % Inital Conditions
-x_1 = [-20,-5,-29,-3];
-y_1 = [-3,-27,-1.5,-5.5];
+x_1 = [1,-5,-29,0];
+y_1 = [1,-27,0,-5];
 
 % Boundaries
 global b1 b2
@@ -48,13 +48,13 @@ tracePlot (x,y,k,plotNum,color)
 end
 
 figure(plotNum-1)
-title('3D Plot - Steepest Descent - Optimized Gamma')
+title('3D Plot - Steepest Descent - Constant Gamma')
 xlabel("x")
 ylabel("y")
 zlabel("g(x,y)")
 
 figure(plotNum)
-title('2D Plot - Steepest Descent - Optimized Gamma')
+title('2D Plot - Steepest Descent - Constant Gamma')
 xlabel("x")
 ylabel("y")
 zlabel("g(x,y)")

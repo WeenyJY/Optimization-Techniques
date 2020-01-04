@@ -51,13 +51,13 @@ tracePlot (x,y,k,plotNum,color)
 end
 
 figure(plotNum-1)
-title('3D Plot - Steepest Descent - Optimized Gamma')
+title('3D Plot - Steepest Descent - Constant Gamma')
 xlabel("x")
 ylabel("y")
 zlabel("f(x,y)")
 
 figure(plotNum)
-title('2D Plot - Steepest Descent - Optimized Gamma')
+title('2D Plot - Steepest Descent - Constant Gamma')
 xlabel("x")
 ylabel("y")
 zlabel("f(x,y)")

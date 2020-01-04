@@ -1,0 +1,13 @@
+####### STEEPEST DESCENT - g(x,y) #######
+
+Initial Conditions [x,y] =  [-20.000000,-3.000000]
+Min(g) = 0.000000 at [x,y] = [-11.500174,-11.499826] after 333 repetitions
+
+Initial Conditions [x,y] =  [-5.000000,-27.000000]
+Min(g) = 0.000000 at [x,y] = [-15.999827,-16.000173] after 341 repetitions
+
+Initial Conditions [x,y] =  [-29.000000,-1.500000]
+Min(g) = 0.000000 at [x,y] = [-15.250173,-15.249827] after 348 repetitions
+
+Initial Conditions [x,y] =  [-3.000000,-5.500000]
+Min(g) = 0.000000 at [x,y] = [-4.249826,-4.250174] after 274 repetitions

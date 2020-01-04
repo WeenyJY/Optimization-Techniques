@@ -24,8 +24,8 @@ global b1 b2
 b1 = -1;
 b2 = -1;
 
-%% Steepest Descent - f(x,y)
-fprintf("####### STEEPEST DESCENT - f(x,y) #######\n\n")
+%% Steepest Descent - g(x,y)
+fprintf("####### STEEPEST DESCENT - g(x,y) #######\n\n")
 
 % Count Number of Plots
 plotNum = plotFunction(plotNum);
@@ -38,7 +38,7 @@ fprintf("Initial Conditions [x,y] =  [%f,%f]\n",x_1(i),y_1(i));
 [x,y,k] = steepestDescent(x_1(i),y_1(i),e);
 
 if k < 50001
-    fprintf("Min(f) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
+    fprintf("Min(g) = %f at [x,y] = [%f,%f] after %d repetitions\n\n", ...
         g(x(end),y(end)),x(end),y(end),k);
 end
 
@@ -49,13 +49,13 @@ tracePlot (x,y,k,plotNum,color)
 end
 
 figure(plotNum-1)
-title('3D Plot - Steepest Descent - Optimized Gamma')
+title('3D Plot - Steepest Descent - Constant Gamma')
 xlabel("x")
 ylabel("y")
 zlabel("g(x,y)")
 
 figure(plotNum)
-title('2D Plot - Steepest Descent - Optimized Gamma')
+title('2D Plot - Steepest Descent - Constant Gamma')
 xlabel("x")
 ylabel("y")
 zlabel("g(x,y)")
