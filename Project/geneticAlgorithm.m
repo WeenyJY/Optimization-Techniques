@@ -21,7 +21,7 @@ chromeNum = 200;
 geneNumber = 16;
 
 % Number of generations until termination
-generationsNum = 10000;
+generationsNum = 2000;
 
 %% Problem - Fitness Function Definition 
 % Rate of Incoming Vehicles
@@ -37,10 +37,14 @@ c = [59.85, 43.05, 53.55, 26.25, ...
 a = ones(1,geneNumber);
 
 % Minimum time t_i
-t = c/4;
+gamma = 8;
+t = gamma*c;
+
+% Overall Time
+T = @(x) t + a.*x./(1-x./c);
 
 % Initial Objective Function
-f = @(x) sum(x.*t + a.*(x.^2)./(1-x./c));
+f = @(x) sum(x.*T(x));
 
 % Equality Constraints
 h = @(x) [ ...
@@ -136,6 +140,9 @@ title('Fittest Chromosome - Fitness Evaluation through Generations')
 xlabel('Generations')
 ylabel('Fitness Evaluation')
 
+minTimeConstraints = ...
+    (T(optimalChromosome)-t)./T(optimalChromosome) - (optimalChromosome./c).^2 ;
+fprintf("Minimum Time Constraint: %f/100 \n\n", 100*mean(abs(minTimeConstraints)) )
 
 toc
 
