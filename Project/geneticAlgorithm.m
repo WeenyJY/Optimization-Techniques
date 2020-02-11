@@ -21,7 +21,7 @@ chromeNum = 200;
 geneNumber = 16;
 
 % Number of generations until termination
-generationsNum = 400000;
+generationsNum = 2000;
 
 %% Problem - Fitness Function Definition
 
@@ -162,10 +162,10 @@ fprintf("Minimum Time Constraint: %f/100 \n\n", 100*mean(abs(minTimeConstraints)
 toc
 
 % Save Plots
-for i = 1 : length(findobj('type','figure'))
-    figure(i)
-    savePlot([mfilename,'_',num2str(i)])
-end
+% for i = 1 : length(findobj('type','figure'))
+%     figure(i)
+%     savePlot([mfilename,'_',num2str(i)])
+% end
 
 
 filename = "partA_minimum"+num2str(floor(f(optimalChromosome)))+".mat";
