@@ -1,9 +1,9 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% The Project - Changing Rate of Incoming Vehicles
+% The Project - Constant Rate of Incoming Vehicles
 % Constrained Minimization Problem using Genetic Algorithm
 
-%% Clean the screen
+%% Clear the Screen
 
 clc
 clear
@@ -15,17 +15,18 @@ tic
 %% Parameters
 
 % Number of Chromosomes in every Population
-chromeNum = 1000;
+chromeNum = 200;
 
 % Number of Parameters (Genes) in every Chromosome
 geneNumber = 16;
 
 % Number of generations until termination
-generationsNum = 500;
+generationsNum = 400000;
 
 %% Problem - Fitness Function Definition
-% Rate of Incoming Vehicles
-V = 100;
+
+% Initialize Random Rate of Incoming Vehicles (V = 100 +- tolerance = 10%)
+V = incomingRate(100,0.1);
 
 % Road Capacity c_i (Row Vector)
 c = [59.85, 43.05, 53.55, 26.25, ...
@@ -37,7 +38,7 @@ c = [59.85, 43.05, 53.55, 26.25, ...
 a = ones(1,geneNumber);
 
 % Minimum time t_i
-gamma = 8;
+gamma = 10;
 t = gamma*c;
 
 % Overall Time
@@ -47,31 +48,27 @@ T = @(x) t + a.*x./(1-x./c);
 f = @(x) sum(x.*T(x));
 
 % Equality Constraints
-h = @(x) [ ...
-    % 7 Equalities
+h = @(x,V) [ ...
+    % 9 Equalities
+    x(1)+x(2)+x(3)-V;
     x(6)+x(7)-x(1);
     x(8)+x(9)-x(7);
     x(15)-x(9)-x(10);
     x(5)+x(6)+x(8)-x(10)-x(11)-x(16);
     x(3)+x(4)-x(5)-x(12);
     x(2)-x(4)-x(13);
-    x(11)+x(12)+x(13)-x(14)];
+    x(11)+x(12)+x(13)-x(14);
+    x(14)+x(15)+x(16)-V];
 
 % Inequality Constraints
 global lb ub
 lb = zeros(1,geneNumber); % x > 0
 ub = c; % x < c
 
-g = @(x) [ ...
-    x(1)+x(2)+x(3)-1.1*V;
-    0.9*V-x(1)-x(2)-x(3);
-    x(14)+x(15)+x(16)-1.1*V;
-    0.9*V-x(14)-x(15)-x(16)];
-
 r = 1e3;
 
 % Fittness Function
-fitnessFunc = @(x) r/(f(x) + r*h(x)'*h(x) + r*sum(abs(g(x))));
+fitnessFunc = @(x,V) r/(f(x) + r*h(x,V)'*h(x,V));
 % fitnessFunc2 = @(params) 1 / (1 + f(params(1:16)) ) + 1 / (1 + sum(abs(h(params(1:16)))) );
 
 %% Initialization
@@ -79,12 +76,17 @@ fitnessFunc = @(x) r/(f(x) + r*h(x)'*h(x) + r*sum(abs(g(x))));
 % Initialize Population of Chromosomes
 % population(parameter_i,chromosome_j) in range (lb,ub)
 population = initPopulation(geneNumber,chromeNum);
-fitnessPop = fitnessEvaluation(population,fitnessFunc);
+fitnessPop = fitnessEvaluation(population,fitnessFunc,V);
 
 % Keep track of the fittest chromosome
 fittest = zeros(generationsNum,1);
-fittest(1) = max(fitnessPop);
-fprintf("Generation 1 \nCurrent Fittest Evaluation: %f \n",fittest(1))
+minimum = zeros(generationsNum,1);
+
+[fittest(1),bestIdx] = max(fitnessPop);
+optimalChromosome = population(bestIdx,:);
+minimum(1) = f(optimalChromosome);
+fprintf("Generation 1 \nCurrent Fittest Evaluation: %f \nCurrent Minimum: %f \n\n",...
+    fittest(1),minimum(1))
 
 %% Genetic Algorithm
 
@@ -108,14 +110,22 @@ while generations <= generationsNum
     % Elitism - Rate of Chromosomes to be passed directly = 1%
     population = elitismProcess(population,prevPopulation,fitnessPop,0.01);
     
+    % Change Random Rate of Incoming Vehicles every 100 Epochs (V = 100 +- tolerance = 10%)
+    if mod(generations,100) == 0
+        V = incomingRate(100,0.1);
+    end
+    
     % Fitness Evaluation
-    fitnessPop = fitnessEvaluation(population,fitnessFunc);
+    fitnessPop = fitnessEvaluation(population,fitnessFunc,V);
     
     % Print Progress Message
-    fittest(generations) = max(fitnessPop);
+    [fittest(generations),bestIdx] = max(fitnessPop);
+    optimalChromosome = population(bestIdx,:);
+    minimum(generations) = f(optimalChromosome);
+    
     if mod(generations,generationsNum/10) == 0
-        fprintf("Generation %d \nCurrent Fittest Evaluation: %f \n",...
-            generations,fittest(generations))
+        fprintf("Generation %d \nCurrent Fittest Evaluation: %f \nCurrent Minimum: %f \n\n",...
+            generations,fittest(generations),minimum(generations))
     end
     
     % Count number of generations
@@ -126,38 +136,55 @@ end
 %% Results - Evaluation
 
 % Results
-[~,bestIdx] = max(fitnessPop);
-optimalChromosome = population(bestIdx,:);
 fprintf("\nFitness of the fittest chromosome: %f \n\n", fitnessPop(bestIdx) )
 
 fprintf("Fittest Chromosome: \n\n")
 disp(optimalChromosome')
 
-eq = h(optimalChromosome);
-ineq = g(optimalChromosome);
-
-fprintf("MSE of Equality Constraints: %f \n", mse(eq))
-fprintf("MSE of Inequality Constraints: %f \n\n", ...
-    mse([min(ineq(1:2))*(min(ineq(1:2))>0);min(ineq(3:4))*(min(ineq(3:4))>0)]))
+fprintf("MSE of Constraints: %f \n\n", mse(h(optimalChromosome,V)))
 
 fprintf("Objective Function's Minimum: %f \n\n",f(optimalChromosome))
 
-% Plot Fittest Chromosome's trace
+% Plot Fittest Chromosome's Trace
 figure
 plot(1:generationsNum,fittest)
 title('Fittest Chromosome - Fitness Evaluation through Generations')
 xlabel('Generations')
 ylabel('Fitness Evaluation')
 
+% Plot Minimum's Trace
+figure
+plot(1:generationsNum,minimum)
+title('Minimum - Objective Function Evaluation through Generations')
+xlabel('Generations')
+ylabel('Objective Function Evaluation')
+
+
+v = 90:0.1:110;
+fit = arrayfun( @(V) fitnessFunc(optimalChromosome,V),v);
+
+% Plot fitness function for all incoming Rates
+figure
+plot(v,fit)
+title('Fittest Chromosome - Fitness Evaluation for all possible Incoming Rates')
+xlabel('Incoming Rate V')
+ylabel('Fitness Evaluation')
+
 minTimeConstraints = ...
     (T(optimalChromosome)-t)./T(optimalChromosome) - (optimalChromosome./c).^2 ;
-fprintf("Minimum Time Constraint: %f \n\n", mean(abs(minTimeConstraints)) )
-
-% Save Plot
-savePlot(mfilename)
+fprintf("Minimum Time Constraint: %f/100 \n\n", 100*mean(abs(minTimeConstraints)) )
 
 toc
-save data.mat
+
+% Save Plots
+for i = 1 : length(findobj('type','figure'))
+    figure(i)
+    savePlot([mfilename,'_',num2str(i)])
+end
+
+
+filename = "partB_minimum"+num2str(floor(f(optimalChromosome)))+".mat";
+save(filename)
 %% Functions
 
 %% Initialize Population
@@ -176,13 +203,13 @@ end
 
 %% Fittness Evaulation
 
-function fitChrome = fitnessEvaluation(population,fitnessFunc)
+function fitChrome = fitnessEvaluation(population,fitnessFunc,V)
 
 fitChrome = zeros(size(population,1),1);
 
 % Calculate fitness of every chromosome in population
 for i = 1:size(population,1)
-    fitChrome(i) = fitnessFunc(population(i,:));
+    fitChrome(i) = fitnessFunc(population(i,:),V);
 end
 
 end
@@ -305,6 +332,13 @@ newPopulation = population;
 for i = 1 : ceil(elitParam*size(population,1))
     newPopulation(Idx(end+1-i),:)= prevPopulation(Idx(i),:);
 end
+
+end
+
+%% Variable Incoming Rate Function
+function V = incomingRate(v,tolerance)
+
+V = v * (1 + (2*rand-1)*tolerance);
 
 end
 

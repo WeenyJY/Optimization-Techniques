@@ -1,9 +1,9 @@
 % Konstantinos Letros 8851
 % Optimization Techniques
-% The Project - Constant Rate of Incoming Vehicles
+% The Project - Changing Rate of Incoming Vehicles
 % Constrained Minimization Problem using Genetic Algorithm
 
-%% Clear the Screen
+%% Clean the screen
 
 clc
 clear
@@ -24,7 +24,6 @@ geneNumber = 16;
 generationsNum = 400000;
 
 %% Problem - Fitness Function Definition
-
 % Rate of Incoming Vehicles
 V = 100;
 
@@ -49,26 +48,30 @@ f = @(x) sum(x.*T(x));
 
 % Equality Constraints
 h = @(x) [ ...
-    % 9 Equalities
-    x(1)+x(2)+x(3)-V;
+    % 7 Equalities
     x(6)+x(7)-x(1);
     x(8)+x(9)-x(7);
     x(15)-x(9)-x(10);
     x(5)+x(6)+x(8)-x(10)-x(11)-x(16);
     x(3)+x(4)-x(5)-x(12);
     x(2)-x(4)-x(13);
-    x(11)+x(12)+x(13)-x(14);
-    x(14)+x(15)+x(16)-V];
+    x(11)+x(12)+x(13)-x(14)];
 
 % Inequality Constraints
 global lb ub
 lb = zeros(1,geneNumber); % x > 0
 ub = c; % x < c
 
+g = @(x) [ ...
+    x(1)+x(2)+x(3)-1.1*V;
+    0.9*V-x(1)-x(2)-x(3);
+    x(14)+x(15)+x(16)-1.1*V;
+    0.9*V-x(14)-x(15)-x(16)];
+
 r = 1e3;
 
 % Fittness Function
-fitnessFunc = @(x) r/(f(x) + r*h(x)'*h(x));
+fitnessFunc = @(x) r/(f(x) + r*h(x)'*h(x) + r*sum(abs(g(x))));
 % fitnessFunc2 = @(params) 1 / (1 + f(params(1:16)) ) + 1 / (1 + sum(abs(h(params(1:16)))) );
 
 %% Initialization
@@ -167,8 +170,7 @@ for i = 1 : length(findobj('type','figure'))
     savePlot([mfilename,'_',num2str(i)])
 end
 
-
-filename = "partA_minimum"+num2str(floor(f(optimalChromosome)))+".mat";
+filename = "partB_minimum"+num2str(floor(f(optimalChromosome)))+".mat";
 save(filename)
 %% Functions
 
