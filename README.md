@@ -6,22 +6,22 @@ This collection of scripts was created for the scope of an assignment in a Optim
 ### Algorithms
 
 #### Part 1: Uncostrained Single Variable Optimization
-Bisection Method
-Golden Section Method
-Fibonacci Method
-Bisection Derivative Method
+ - Bisection Method
+ - Golden Section Method
+ - Fibonacci Method
+ - Bisection Derivative Method
 
 
 #### Part 2: Uncostrained Multivariate Optimization
-Steepest Descent Method
-Newton's Method
-Levenberg-Marquardt Method
-Conjugate Gradients Method
-Quasi Newton Method
+ - Steepest Descent Method
+ - Newton's Method
+ - Levenberg-Marquardt Method
+ - Conjugate Gradients Method
+ - Quasi Newton Method
 
 #### Part 3: Costrained Multivariate Optimization
-Barrier Method
-Penalty Method
+ - Barrier Method
+ - Penalty Method
 
 #### Project: Genetic Algorithm Implementation (Constrained Minimization Problem)
 Minimize Traffic of a road network, given constant or variable input vehicle flow. 
