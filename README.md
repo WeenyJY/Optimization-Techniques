@@ -3,7 +3,12 @@
 ### Description
 This collection of scripts was created for the scope of an assignment in a Optimization-Techniques cource of the Aristotle University of Thessaloniki during the 2019-20 academic year. The main purpose of these projects is to give some intuition about how some famous multivariate minimization algorithms work.
 
-![alt text]()
+
+Solarized dark             |  Solarized Ocean
+:-------------------------:|:-------------------------:
+![](https://github.com/kosletr/Optimization-Techniques/blob/master/%CE%95%CF%81%CE%B3%CE%B1%CF%83%CE%AF%CE%B1%202/function_g.jpg)  |  ![](https://github.com/kosletr/Optimization-Techniques/blob/master/%CE%95%CF%81%CE%B3%CE%B1%CF%83%CE%AF%CE%B1%202/function_g_2d.jpg)
+
+
 ![alt-text-1](https://github.com/kosletr/Optimization-Techniques/blob/master/%CE%95%CF%81%CE%B3%CE%B1%CF%83%CE%AF%CE%B1%202/function_g.jpg "title-1") ![alt-text-2](https://github.com/kosletr/Optimization-Techniques/blob/master/%CE%95%CF%81%CE%B3%CE%B1%CF%83%CE%AF%CE%B1%202/function_g_2d.jpg "title-2")
 
 ### Algorithms
