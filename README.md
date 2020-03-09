@@ -35,4 +35,4 @@ Genetic Operations implemented:
  - Elitism
 
 ### Setup
-The provided code is created using MATLAB R2019a, however older MATLAB versions should work fine. All of the .m scripts provided, are  commented for higher readability and maintenance.
+The provided code was created using MATLAB R2019a, however older MATLAB versions should work fine. All of the .m scripts provided, are  commented for higher readability and maintenance.
